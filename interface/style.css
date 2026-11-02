@@ -1,4 +1,17 @@
+#sivupaneeli {
+    display: flex;
+    flex-direction: column;
+    width: 300px;
+    height: 100%;
+    background-color: #f1f1f1;
+    padding: 10px;
+    float: left;
+}
 
+section {
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
 
 #markers {
     display: grid repeat(3, 1fr);
@@ -36,6 +49,44 @@
 }
 
 .koju button[hidden] {
+    display: none;
+}
+
+#parkit {
+    display: grid repeat(3, 1fr);
+    grid-template-columns: auto auto auto;
+    background-color: dodgerblue;
+    padding: 10px;
+    float: left;
+    height: auto;
+    width: 300px;
+}
+
+.parkit {
+  background-color: #ffffff;
+  border: 1px solid black;
+  padding: 5px;
+  font-size: 10px;
+  text-align: center;
+}
+
+.parkit:hover {
+    background-color: #949494;
+    border-color: #2980b9;
+}
+
+.parkit.parkit-highlight {
+    background-color: #949494;
+    border-color: #2980b9;
+}
+
+.parkit button {
+    margin-right: 5px;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.parkit button[hidden] {
     display: none;
 }
 
