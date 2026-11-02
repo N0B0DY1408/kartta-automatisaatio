@@ -1,27 +1,54 @@
 
 
 #markers {
-    display: grid;
+    display: grid repeat(3, 1fr);
     grid-template-columns: auto auto auto;
     background-color: dodgerblue;
     padding: 10px;
     float: left;
-    height: 800px;
+    height: auto;
     width: 300px;
     
 }
 
-#markers div {
-  background-color: #c9c9c9;
+.koju {
+  background-color: #ffffff;
   border: 1px solid black;
-  padding: 10px;
-  font-size: 30px;
+  padding: 5px;
+  font-size: 10px;
   text-align: center;
+}
+
+.koju:hover {
+    background-color: #949494;
+    border-color: #2980b9;
+}
+
+.koju.koju-highlight {
+    background-color: #949494;
+    border-color: #2980b9;
+}
+
+.koju button {
+    margin-right: 5px;
+    margin-top: 5px;
+    cursor: pointer;
+}
+
+.koju button[hidden] {
+    display: none;
 }
 
 
 #map {
-    height: 800px;
-    width: 1000px;
+    height: 820px;
+    width: 1550px;
     float: right;
+}
+
+@media screen and (max-width: 600px) {
+    #map {
+        height: 400px;
+        width: 100%;
+    }
 }
