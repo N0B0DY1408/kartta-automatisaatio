@@ -133,132 +133,41 @@ lataaInput.addEventListener("change", function () {
                     koju.coordinates.lng
                 );
 
-                const marker = L.marker(position, {
-                    draggable: true
-                }).addTo(map);
+                createKoju(
+                    koju.number,
+                    koju.name,
+                    position
+                );
 
-                const popupContent = document.createElement("div");
-                const popupTitle = document.createElement("strong");
-                const popupName = document.createElement("p");
+                kojumäärä = Math.max(
+                    kojumäärä,
+                    koju.number + 1
+                );
 
-                popupTitle.textContent = `Koju #${koju.number}`;
-                popupName.textContent = koju.name;
-
-                popupContent.append(popupTitle, popupName);
-                marker.bindPopup(popupContent);
-
-                const kojuDiv = document.createElement("div");
-                kojuDiv.className = "koju";
-
-                const number = document.createElement("h3");
-                number.textContent = `Koju #${koju.number}`;
-
-                const nameDisplay = document.createElement("p");
-                nameDisplay.textContent = koju.name;
-
-                const locationDisplay = document.createElement("p");
-
-                function updatekojuLocation() {
-                const newPosition = marker.getLatLng();
-
-                locationDisplay.textContent =
-                    `sijainti: ${newPosition.lat.toFixed(5)}, ${newPosition.lng.toFixed(5)}`;
-
-                kojuData.coordinates = newPosition;
-                }
-
-                const kojuData = {
-                    number: koju.number,
-                    name: koju.name,
-                    coordinates: position,
-                    marker: marker,
-                    element: kojuDiv
-                };
-
-                updatekojuLocation();
-
-                marker.on("dragend", updatekojuLocation);
-                marker.on("pm:dragend", updatekojuLocation);
-
-                kojuDiv.addEventListener("mouseenter", function () {
-                    marker.openPopup();
-                });
-
-                kojuDiv.addEventListener("mouseleave", function () {
-                    marker.closePopup();
-                });
-
-                marker.on("mouseover", function () {
-                    kojuDiv.classList.add("koju-highlight");
-                });
-
-                marker.on("mouseout", function () {
-                    kojuDiv.classList.remove("koju-highlight");
-                });
-
-                kojuDiv.append(number, nameDisplay, locationDisplay);
-                markersSection.appendChild(kojuDiv);
-
-                kojut.set(koju.number, kojuData);
-
-                kojumäärä = Math.max(kojumäärä, koju.number + 1);
             });
 
+            // Recreate parking areas using the shared creation function
             planData.parkit.forEach(function (area) {
 
                 const corners = area.coordinates.map(function (corner) {
                     return L.latLng(corner.lat, corner.lng);
                 });
 
-                // A polygon made from the saved corners preserves rotation
-                const rectangle = L.polygon(corners, {
-                    color: "#3388ff",
-                    fillColor: "#3388ff",
-                    fillOpacity: 0.25,
-                    weight: 2
-                }).addTo(map);
-
-                const areaDiv = document.createElement("div");
-                areaDiv.className = "parkit";
-
-                const title = document.createElement("h3");
-                title.textContent = area.name;
-
-                const entranceText = document.createElement("p");
-                entranceText.textContent =
-                    `Sisäänkäynti: ${area.entrance || "Ei määritetty"}`;
-
-                const exitText = document.createElement("p");
-                exitText.textContent =
-                    `Uloskäynti: ${area.exit || "Ei määritetty"}`;
-
-                const areaData = {
-                    number: area.number,
-                    name: area.name,
-                    entrance: area.entrance,
-                    exit: area.exit,
-                    layer: rectangle,
-                    element: areaDiv
-                };
-
-                rectangle.bindPopup(
-                    `<strong>${area.name}</strong>`
+                luoparkki(
+                    area.number,
+                    area.name,
+                    area.entrance,
+                    area.exit,
+                    null,
+                    corners
                 );
 
-                areaDiv.addEventListener("mouseenter", function () {
-                    rectangle.openPopup();
-                });
+                // Keep the next parking number unique
+                parkingCounter = Math.max(
+                    parkingCounter,
+                    area.number + 1
+                );
 
-                areaDiv.addEventListener("mouseleave", function () {
-                    rectangle.closePopup();
-                });
-
-                areaDiv.append(title, entranceText, exitText);
-                parkingSection.appendChild(areaDiv);
-
-                parkit.set(area.number, areaData);
-
-                parkingCounter = Math.max(parkingCounter, area.number + 1);
             });
 
             map.setView(
