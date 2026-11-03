@@ -43,6 +43,8 @@ function createKoju(number, name, coordinates) {
 
         locationDisplay.textContent =
             `sijainti: ${newPosition.lat.toFixed(5)}, ${newPosition.lng.toFixed(5)}`;
+
+        scheduleAutosave();
     }
 
     updateKojuLocation();
@@ -134,6 +136,8 @@ function createKoju(number, name, coordinates) {
     markersSection.appendChild(kojuDiv);
 
     console.log("Koju lisätty:", kojuData);
+
+    scheduleAutosave();
 }
 
 
@@ -186,6 +190,7 @@ function luoparkki(number, name, entrance, exit, layer = null, corners = null) {
 
         popupExit.textContent =
             `Uloskäynti: ${areaData.exit || "Ei määritetty"}`;
+
     }
 
     updatePopup();
@@ -197,6 +202,21 @@ function luoparkki(number, name, entrance, exit, layer = null, corners = null) {
     );
 
     layer.bindPopup(popupContent);
+
+    // Autosave when the parking area is edited
+    layer.on("pm:edit", function () {
+        scheduleAutosave();
+    });
+
+    // Autosave when the parking area is moved
+    layer.on("pm:dragend", function () {
+        scheduleAutosave();
+    });
+
+    // Autosave when the parking area is rotated
+    layer.on("pm:rotateend", function () {
+        scheduleAutosave();
+    });
 
     const areaDiv = document.createElement("div");
     areaDiv.className = "parkit";
@@ -275,6 +295,8 @@ function luoparkki(number, name, entrance, exit, layer = null, corners = null) {
             updatePopup();
 
             finishEditing();
+
+            scheduleAutosave();
         });
 
         cancelButton.addEventListener("click", finishEditing);
@@ -292,6 +314,8 @@ function luoparkki(number, name, entrance, exit, layer = null, corners = null) {
         areaDiv.remove();
 
         parkit.delete(number);
+
+        scheduleAutosave();
     });
 
     areaDiv.append(

@@ -17,9 +17,13 @@ const kojut = new Map();
 
 map.on("click", function (event) {
 
-    if (!kojuPlacementEnabled) {
-        return;
-    }
+    if (!kojuPlacementEnabled) return;
+
+    if (map.pm.globalRotateModeEnabled()) return;
+    if (map.pm.globalEditModeEnabled()) return;
+    if (map.pm.globalDragModeEnabled()) return;
+    if (map.pm.globalRemovalModeEnabled()) return;
+
 
     const kojuName = prompt("Kojun nimi");
 
@@ -79,6 +83,16 @@ map.on("pm:create", function (event) {
 
     parkingCounter++;
 
+});
+
+layer.on("pm:edit", function () {
+
+    scheduleAutosave();
+});
+
+layer.on("pm:dragend", function () {
+
+    scheduleAutosave();
 });
 
 
