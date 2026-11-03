@@ -25,6 +25,14 @@
         <h1>tereve</h1>
     </header>
 
+    <nav>
+        <button id="tallenna">Tallenna nykyinen suunnitelma</button>
+
+        <button id="Tuo">Tuo suunnitelma</button>
+
+        <input type="file" id="TuoInput" accept=".json,application/json" hidden>
+    </nav>
+
     <div id="sivupaneeli">
 
         <section id="markers">
@@ -50,6 +58,7 @@
     <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.18.3/dist/leaflet-geoman.min.js"></script>
     
     <script src="scripts/map.js"></script>
+    <script src="scripts/tallennus.js"></script>
 
 </body>
 

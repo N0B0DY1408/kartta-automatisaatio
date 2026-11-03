@@ -58,11 +58,11 @@ map.on('click', function (event){
     const kojudiv = document.createElement("div");
     kojudiv.className = "koju";
 
-    const numero = document.createElement("h3");
-    numero.textContent = `koju #${kojunumero}`;
-
-    const nimiDisplay = document.createElement("p");
+    const nimiDisplay = document.createElement("h3");
     nimiDisplay.textContent = Kojunimi.trim();
+
+    const numero = document.createElement("p");
+    numero.textContent = `koju #${kojunumero}`;
 
     const sijaintiP = document.createElement("p");
     sijaintiP.textContent = `sijainti: ${sijainti.lat.toFixed(5)}, ${sijainti.lng.toFixed(5)}`;
