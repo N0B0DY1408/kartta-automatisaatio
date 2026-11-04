@@ -6,6 +6,14 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map);
 
+map.on("moveend", function () {
+    scheduleAutosave();
+});
+
+map.on("zoomend", function () {
+    scheduleAutosave();
+});
+
 //tehdään kartalle markkerereita joita käyttäjä voi lisätä klikkaamalla karttaa
 const markersSection = document.getElementById("markers");
 
@@ -83,16 +91,6 @@ map.on("pm:create", function (event) {
 
     parkingCounter++;
 
-});
-
-layer.on("pm:edit", function () {
-
-    scheduleAutosave();
-});
-
-layer.on("pm:dragend", function () {
-
-    scheduleAutosave();
 });
 
 

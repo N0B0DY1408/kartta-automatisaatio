@@ -103,10 +103,16 @@ function createKoju(number, name, coordinates) {
 
     deleteButton.addEventListener("click", function () {
 
+        console.log("DELETE BUTTON CLICKED:", number);
+
         map.removeLayer(marker);
         kojuDiv.remove();
 
         kojut.delete(number);
+
+        console.log("Markers remaining in memory:", kojut.size);
+
+        scheduleAutosave();
     });
 
     kojuDiv.append(
@@ -304,6 +310,7 @@ function luoparkki(number, name, entrance, exit, layer = null, corners = null) {
         exitInput.after(editControls);
         nameInput.focus();
     });
+
 
     const deleteButton = document.createElement("button");
     deleteButton.textContent = "Poista alue";

@@ -1,5 +1,9 @@
 const tallennusNappi = document.getElementById('tallenna');
 
+let currentPlanName = "Untitled plan";
+
+let currentPlanId = "current";
+
 function suunnitelmaData(planName) {
 
     // Collect all vendors
@@ -114,8 +118,156 @@ function clearCurrentPlan() {
 }
 
 
-// Restore the saved plan from IndexedDB
+
+function validatePlanData(plan) {
+
+    function isObject(value) {
+        return value !== null &&
+            typeof value === "object" &&
+            !Array.isArray(value);
+    }
+
+    function validateCoordinates(coordinates, description) {
+
+        if (!isObject(coordinates)) {
+            throw new Error(description + ": sijaintitiedot puuttuvat.");
+        }
+
+        if (
+            !Number.isFinite(coordinates.lat) ||
+            !Number.isFinite(coordinates.lng)
+        ) {
+            throw new Error(description + ": väärä sijainti.");
+        }
+
+        if (
+            coordinates.lat < -900 ||
+            coordinates.lat > 900 ||
+            coordinates.lng < -1800 ||
+            coordinates.lng > 1800
+        ) {
+            throw new Error(description + ": sijaintitiedot ovat alueen ulkopuolella.");
+        }
+    }
+    if (!isObject(plan)) {
+        throw new Error("suunnitelman data ongelma.");
+    }
+
+    if (plan.version !== 1) {
+        throw new Error("suunnitelma versio ei ole tuettu.");
+    }
+
+    if (typeof plan.name !== "string") {
+        throw new Error("suunnitelman nimi puuttuu tai on virheellinen.");
+    }
+
+    if (
+        !Array.isArray(plan.kojut) ||
+        !Array.isArray(plan.parkit)
+    ) {
+        throw new Error("koju tai parkki data ongelma.");
+    }
+
+    const vendorNumbers = new Set();
+
+    plan.kojut.forEach(function (vendor, index) {
+
+        if (!isObject(vendor)) {
+            throw new Error("virhe kojun kohdalla " + index);
+        }
+
+        if (
+            !Number.isInteger(vendor.number) ||
+            vendor.number < 1
+        ) {
+            throw new Error("virhen kojun numeron kanssa.");
+        }
+
+        if (vendorNumbers.has(vendor.number)) {
+            throw new Error("kojun numero on jo käytössä.");
+        }
+
+        vendorNumbers.add(vendor.number);
+
+        if (typeof vendor.name !== "string") {
+            throw new Error("virhe kojun nimen kanssa.");
+        }
+
+        validateCoordinates(
+            vendor.coordinates,
+            "Vendor " + vendor.number
+        );
+    });
+
+    const parkingNumbers = new Set();
+
+    plan.parkit.forEach(function (area, index) {
+
+        if (!isObject(area)) {
+            throw new Error("väärä parkki alue " + index);
+        }
+
+        if (
+            !Number.isInteger(area.number) ||
+            area.number < 1
+        ) {
+            throw new Error("virhe parkki alueen numeron kanssa.");
+        }
+
+        if (parkingNumbers.has(area.number)) {
+            throw new Error("parkin numero on jo käytössä.");
+        }
+
+        parkingNumbers.add(area.number);
+
+        if (
+            typeof area.name !== "string" ||
+            typeof area.entrance !== "string" ||
+            typeof area.exit !== "string"
+        ) {
+            throw new Error("virhe parkki alueen tietojen kanssa.");
+        }
+
+        if (
+            !Array.isArray(area.coordinates) ||
+            area.coordinates.length < 3
+        ) {
+            throw new Error("virhe parkki alueen koordinaattien kanssa.");
+        }
+
+        area.coordinates.forEach(function (corner) {
+            validateCoordinates(
+                corner,
+                "Parking area " + area.number
+            );
+        });
+    });
+
+    if (!isObject(plan.map) || !isObject(plan.map.center)) {
+        throw new Error("virhen kartan kanssa.");
+    }
+
+    validateCoordinates(plan.map.center, "Map center");
+
+    if (
+        !Number.isFinite(plan.map.zoom) ||
+        plan.map.zoom < 0 ||
+        plan.map.zoom > 30
+    ) {
+        throw new Error("virhe kartan zoomin kanssa.");
+    }
+
+    if (!Number.isFinite(plan.map.bearing)) {
+        throw new Error("virhe kartan suunnan kanssa.");
+    }
+
+    return true;
+}
+
+
 async function restorePlanFromDatabase() {
+
+    autosavePaused = true;
 
     try {
         const planData = await loadCurrentPlan();
@@ -136,7 +288,6 @@ async function restorePlanFromDatabase() {
 
         clearCurrentPlan();
 
-        // Restore vendors
         planData.kojut.forEach(function (koju) {
 
             const position = L.latLng(
@@ -149,7 +300,6 @@ async function restorePlanFromDatabase() {
             kojumäärä = Math.max(kojumäärä, koju.number + 1);
         });
 
-        // Restore parking areas
         planData.parkit.forEach(function (area) {
 
             const corners = area.coordinates.map(function (corner) {
@@ -165,10 +315,12 @@ async function restorePlanFromDatabase() {
                 corners
             );
 
-            parkingCounter = Math.max(parkingCounter, area.number + 1);
+            parkingCounter = Math.max(
+                parkingCounter,
+                area.number + 1
+            );
         });
 
-        // Restore map view
         map.setView(
             [planData.map.center.lat, planData.map.center.lng],
             planData.map.zoom
@@ -178,10 +330,16 @@ async function restorePlanFromDatabase() {
             map.setBearing(planData.map.bearing || 0);
         }
 
+        currentPlanName = planData.name || "Untitled plan";
+
         console.log("Plan restored from IndexedDB:", planData);
 
     } catch (error) {
         console.error("Failed to restore plan:", error);
+
+    } finally {
+        autosavePaused = false;
+        console.log("Autosave resumed.");
     }
 }
 
@@ -217,88 +375,87 @@ lataaInput.addEventListener("change", function () {
         return;
     }
 
-    const reader = new FileReader();
+    
+const reader = new FileReader();
 
-    reader.onload = function (event) {
+reader.onload = function (event) {
+
     let rotationWasEnabled = false;
+
+    // Pause autosaving while the plan is being imported
+    autosavePaused = true;
 
     try {
         const suunnitelmaData = JSON.parse(event.target.result);
+
+        validatePlanData(suunnitelmaData);
 
         rotationWasEnabled = map.pm.globalRotateModeEnabled();
 
         if (rotationWasEnabled) {
             map.pm.disableGlobalRotateMode();
         }
-            if (
-                suunnitelmaData.version !== 1 ||
-                !Array.isArray(suunnitelmaData.kojut) ||
-                !Array.isArray(suunnitelmaData.parkit) ||
-                !suunnitelmaData.map
-            ) {
-                throw new Error("Valittu tiedosto ei toimi.");
-            }
 
-            clearCurrentPlan();
+        clearCurrentPlan();
 
-            suunnitelmaData.kojut.forEach(function (koju) {
+        // Restore vendors
+        suunnitelmaData.kojut.forEach(function (koju) {
 
-                const position = L.latLng(
-                    koju.coordinates.lat,
-                    koju.coordinates.lng
-                );
-
-                createKoju(
-                    koju.number,
-                    koju.name,
-                    position
-                );
-
-                kojumäärä = Math.max(
-                    kojumäärä,
-                    koju.number + 1
-                );
-
-            });
-
-            // Recreate parking areas using the shared creation function
-            suunnitelmaData.parkit.forEach(function (area) {
-
-                const corners = area.coordinates.map(function (corner) {
-                    return L.latLng(corner.lat, corner.lng);
-                });
-
-                luoparkki(
-                    area.number,
-                    area.name,
-                    area.entrance,
-                    area.exit,
-                    null,
-                    corners
-                );
-
-                // Keep the next parking number unique
-                parkingCounter = Math.max(
-                    parkingCounter,
-                    area.number + 1
-                );
-
-            });
-
-            map.setView(
-                [suunnitelmaData.map.center.lat, suunnitelmaData.map.center.lng],
-                suunnitelmaData.map.zoom
+            const position = L.latLng(
+                koju.coordinates.lat,
+                koju.coordinates.lng
             );
 
-            if (typeof map.setBearing === "function") {
-                map.setBearing(suunnitelmaData.map.bearing || 0);
-            }
+            createKoju(
+                koju.number,
+                koju.name,
+                position
+            );
 
-            if (rotationWasEnabled) {
-            map.pm.enableGlobalRotateMode();
+            kojumäärä = Math.max(
+                kojumäärä,
+                koju.number + 1
+            );
+        });
+
+        // Restore parking areas
+        suunnitelmaData.parkit.forEach(function (area) {
+
+            const corners = area.coordinates.map(function (corner) {
+                return L.latLng(corner.lat, corner.lng);
+            });
+
+            luoparkki(
+                area.number,
+                area.name,
+                area.entrance,
+                area.exit,
+                null,
+                corners
+            );
+
+            parkingCounter = Math.max(
+                parkingCounter,
+                area.number + 1
+            );
+        });
+
+        // Restore map view
+        map.setView(
+            [
+                suunnitelmaData.map.center.lat,
+                suunnitelmaData.map.center.lng
+            ],
+            suunnitelmaData.map.zoom
+        );
+
+        if (typeof map.setBearing === "function") {
+            map.setBearing(suunnitelmaData.map.bearing || 0);
         }
 
-            console.log("Suunnitelma tuotu:", suunnitelmaData);
+        currentPlanName = suunnitelmaData.name || "Untitled plan";
+
+        console.log("Suunnitelma tuotu:", suunnitelmaData);
         alert("Suunnitelma ladattu onnistuneesti!");
 
     } catch (error) {
@@ -306,6 +463,11 @@ lataaInput.addEventListener("change", function () {
         alert("Suunnitelmaa ei voitu ladata. Tiedosto saattaa olla virheellinen.");
 
     } finally {
+
+        // Resume autosaving
+        autosavePaused = false;
+
+        // Restore rotation mode if it was previously enabled
         if (rotationWasEnabled) {
             map.pm.enableGlobalRotateMode();
         }
@@ -313,6 +475,7 @@ lataaInput.addEventListener("change", function () {
         lataaInput.value = "";
     }
 };
+
 
     reader.onerror = function () {
         alert("Suunnitelmaa ei voitu ladata. Tiedosto saattaa olla virheellinen.");
@@ -353,4 +516,4 @@ async function testLoadFromDatabase() {
     }
 }
 
-restorePlanFromDatabase();
+restorePlanFromDatabase()

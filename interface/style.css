@@ -35,6 +35,26 @@ nav {
     color: white;
 }
 
+#saveStatus {
+    font-size: 14px;
+    padding: 5px 10px;
+    color: #555;
+    float: right;
+    margin-left: auto;
+}
+
+#saveStatus.saving {
+    color: #b7791f;
+}
+
+#saveStatus.saved {
+    color: #2f855a;
+}
+
+#saveStatus.error {
+    color: #c53030;
+}
+
 #sivupaneeli {
     display: flex;
     flex-direction: column;

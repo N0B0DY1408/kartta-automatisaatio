@@ -3,7 +3,6 @@ const databaseVersion = 1;
 
 let databasePromise = null;
 
-
 function openDatabase() {
 
     if (databasePromise) {
@@ -19,7 +18,10 @@ function openDatabase() {
             const database = event.target.result;
 
             if (!database.objectStoreNames.contains("Suunnitelmat")) {
-                database.createObjectStore("Suunnitelmat", { keyPath: "id" });
+                database.createObjectStore(
+                    "Suunnitelmat",
+                    { keyPath: "id" }
+                );
             }
         };
 
@@ -28,6 +30,7 @@ function openDatabase() {
         };
 
         request.onerror = function () {
+            databasePromise = null;
             reject(request.error);
         };
     });
@@ -35,18 +38,25 @@ function openDatabase() {
     return databasePromise;
 }
 
-async function saveCurrentPlan(suunnitelmaData) {
+
+// Save a named plan
+async function savePlan(planId, planData) {
 
     const database = await openDatabase();
 
     return new Promise(function (resolve, reject) {
 
-        const transaction = database.transaction("Suunnitelmat", "readwrite");
+        const transaction = database.transaction(
+            "Suunnitelmat",
+            "readwrite"
+        );
+
         const store = transaction.objectStore("Suunnitelmat");
 
         store.put({
-            id: "current",
-            data: suunnitelmaData,
+            id: planId,
+            name: planData.name,
+            data: planData,
             savedAt: new Date().toISOString()
         });
 
@@ -65,28 +75,94 @@ async function saveCurrentPlan(suunnitelmaData) {
 }
 
 
-async function loadCurrentPlan() {
+// Load a specific plan
+async function loadPlan(planId) {
 
     const database = await openDatabase();
 
     return new Promise(function (resolve, reject) {
 
-        const transaction = database.transaction("Suunnitelmat", "readonly");
-        const store = transaction.objectStore("Suunnitelmat");
+        const transaction = database.transaction(
+            "Suunnitelmat",
+            "readonly"
+        );
 
-        const request = store.get("current");
+        const store = transaction.objectStore("Suunnitelmat");
+        const request = store.get(planId);
 
         request.onsuccess = function () {
-
-            if (request.result) {
-                resolve(request.result.data);
-            } else {
-                resolve(null);
-            }
+            resolve(request.result ? request.result.data : null);
         };
 
         request.onerror = function () {
             reject(request.error);
         };
     });
+}
+
+
+// Get all saved plans
+async function getAllPlans() {
+
+    const database = await openDatabase();
+
+    return new Promise(function (resolve, reject) {
+
+        const transaction = database.transaction(
+            "Suunnitelmat",
+            "readonly"
+        );
+
+        const store = transaction.objectStore("Suunnitelmat");
+        const request = store.getAll();
+
+        request.onsuccess = function () {
+            resolve(request.result);
+        };
+
+        request.onerror = function () {
+            reject(request.error);
+        };
+    });
+}
+
+
+// Delete a specific plan
+async function deletePlan(planId) {
+
+    const database = await openDatabase();
+
+    return new Promise(function (resolve, reject) {
+
+        const transaction = database.transaction(
+            "Suunnitelmat",
+            "readwrite"
+        );
+
+        const store = transaction.objectStore("Suunnitelmat");
+
+        store.delete(planId);
+
+        transaction.oncomplete = function () {
+            resolve();
+        };
+
+        transaction.onerror = function () {
+            reject(transaction.error);
+        };
+
+        transaction.onabort = function () {
+            reject(transaction.error);
+        };
+    });
+}
+
+
+// Temporary compatibility functions
+async function saveCurrentPlan(planData) {
+    return savePlan("current", planData);
+}
+
+async function loadCurrentPlan() {
+    return loadPlan("current");
 }
