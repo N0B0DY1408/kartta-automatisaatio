@@ -35,6 +35,20 @@ nav {
     color: white;
 }
 
+#kojuCounter {
+    padding: 8px 14px;
+    background: #f0f0f0;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+}
+
+#kojuCount {
+    color: #27834a;
+    font-weight: bold;
+}
+
 #saveStatus {
     font-size: 14px;
     padding: 5px 10px;
@@ -144,6 +158,38 @@ section {
 .parkit button[hidden] {
     display: none;
 }
+
+
+#kojuDialog {
+    border: none;
+    border-radius: 10px;
+    padding: 25px;
+    min-width: 280px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+}
+
+#kojuDialog::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+}
+
+#kojuDialog form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#kojuDialog input {
+    padding: 9px;
+    font-size: 15px;
+}
+
+.dialog-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
 
 
 #map {

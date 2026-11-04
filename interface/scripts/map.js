@@ -23,7 +23,7 @@ let kojumäärä = 1;
 
 const kojut = new Map();
 
-map.on("click", function (event) {
+map.on("click", async function (event) {
 
     if (!kojuPlacementEnabled) return;
 
@@ -32,8 +32,9 @@ map.on("click", function (event) {
     if (map.pm.globalDragModeEnabled()) return;
     if (map.pm.globalRemovalModeEnabled()) return;
 
+    const kojuName = await kysyKojuNimi();
 
-    const kojuName = prompt("Kojun nimi");
+    if (!kojuName) return;
 
     if (!kojuName || !kojuName.trim()) {
         return;
@@ -48,6 +49,28 @@ map.on("click", function (event) {
     );
 
 });
+
+
+function kysyKojuNimi() {
+    return new Promise(function (resolve) {
+        const dialog = document.getElementById("kojuDialog");
+        const input = document.getElementById("kojuNameInput");
+
+        input.value = "";
+
+        dialog.addEventListener("close", function () {
+            if (dialog.returnValue === "create") {
+                const name = input.value.trim();
+                resolve(name || null);
+            } else {
+                resolve(null);
+            }
+        }, { once: true });
+
+        dialog.showModal();
+        input.focus();
+    });
+}
 
 const parkingSection = document.getElementById("parkit");
 

@@ -63,16 +63,19 @@ function suunnitelmaData(planName) {
     };
 }
 
-tallennusNappi.addEventListener('click', function() {
+tallennusNappi.addEventListener('click', async function() {
 
-    const suunnitelmanNimi = prompt('Anna suunnitelmalle nimi:');
+    const suunnitelmanNimi = await kysyTallennusNimi();
 
-    if (!suunnitelmanNimi || !suunnitelmanNimi.trim()) {
+    if (!suunnitelmanNimi) {
         return;
     }
 
+    // Update the current plan name
+    currentPlanName = suunnitelmanNimi;
+
     // Collect the complete plan using our function
-    const planData = suunnitelmaData(suunnitelmanNimi.trim());
+    const planData = suunnitelmaData(suunnitelmanNimi);
 
     // Convert the plan into JSON text
     const jsonData = JSON.stringify(planData, null, 4);
@@ -87,7 +90,7 @@ tallennusNappi.addEventListener('click', function() {
     const downloadLink = document.createElement("a");
 
     downloadLink.href = URL.createObjectURL(file);
-    downloadLink.download = suunnitelmanNimi.trim() + ".json";
+    downloadLink.download = suunnitelmanNimi + ".json";
 
     downloadLink.click();
 
@@ -264,6 +267,26 @@ function validatePlanData(plan) {
     return true;
 }
 
+function kysyTallennusNimi() {
+    return new Promise(function (resolve) {
+        const dialog = document.getElementById("savePlanDialog");
+        const input = document.getElementById("savePlanNameInput");
+
+        input.value = currentPlanName || "";
+
+        dialog.addEventListener("close", function () {
+            if (dialog.returnValue === "save") {
+                const name = input.value.trim();
+                resolve(name || null);
+            } else {
+                resolve(null);
+            }
+        }, { once: true });
+
+        dialog.showModal();
+        input.focus();
+    });
+}
 
 async function restorePlanFromDatabase() {
 
@@ -343,21 +366,21 @@ async function restorePlanFromDatabase() {
     }
 }
 
-    for (const koju of kojut.values()) {
-        map.removeLayer(koju.marker);
-        koju.element.remove();
-    }
+for (const koju of kojut.values()) {
+    map.removeLayer(koju.marker);
+    koju.element.remove();
+}
 
-    for (const area of parkit.values()) {
-        map.removeLayer(area.layer);
-        area.element.remove();
-    }
+for (const area of parkit.values()) {
+    map.removeLayer(area.layer);
+    area.element.remove();
+}
 
-    kojut.clear();
-    parkit.clear();
+kojut.clear();
+parkit.clear();
 
-    kojumäärä = 1;
-    parkingCounter = 1;
+kojumäärä = 1;
+parkingCounter = 1;
 
 
 const lataanappi = document.getElementById("Tuo");

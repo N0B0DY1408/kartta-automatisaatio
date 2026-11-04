@@ -1,0 +1,24 @@
+{
+  "name": "kartta-automatisaatio",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/N0B0DY1408/kartta-automatisaatio.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/N0B0DY1408/kartta-automatisaatio/issues"
+  },
+  "homepage": "https://github.com/N0B0DY1408/kartta-automatisaatio#readme",
+  "devDependencies": {
+    "electron": "^45.2.2"
+  }
+}

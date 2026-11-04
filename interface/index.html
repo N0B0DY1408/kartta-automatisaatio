@@ -32,6 +32,10 @@
 
         <input type="file" id="TuoInput" accept=".json,application/json" hidden>
 
+        <div id="kojuCounter">
+            Myyntikojuja: <span id="kojuCount">0</span>
+        </div>
+
         <div id="saveStatus">Saved</div>
     </nav>
 
@@ -48,6 +52,59 @@
         </section>
 
     </div>
+
+    
+    <dialog id="savePlanDialog">
+        <form method="dialog">
+            <h2>Tallenna suunnitelma</h2>
+
+            <label for="savePlanNameInput">Suunnitelman nimi:</label>
+
+            <input
+                type="text"
+                id="savePlanNameInput"
+                placeholder="Esim. Kesämarkkinat"
+                required
+            >
+
+            <div class="dialog-buttons">
+                <button type="submit" value="save">
+                    Tallenna
+                </button>
+
+                <button type="submit" value="cancel" formnovalidate>
+                    Peruuta
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+
+    <dialog id="kojuDialog">
+        <form method="dialog">
+            <h2>Uusi myyntikoju</h2>
+
+            <label for="kojuNameInput">Kojun nimi:</label>
+            <input
+                type="text"
+                id="kojuNameInput"
+                placeholder="Esim. Kahvila"
+                required
+                autofocus
+            >
+
+            <div class="dialog-buttons">
+                <button type="submit" value="create">
+                    Luo koju
+                </button>
+
+
+                <button type="submit" value="cancel" formnovalidate>
+                    Peruuta
+                </button>
+            </div>
+        </form>
+    </dialog>
 
     <div id="map"></div>
 

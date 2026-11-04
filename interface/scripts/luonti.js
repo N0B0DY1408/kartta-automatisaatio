@@ -35,6 +35,8 @@ function createKoju(number, name, coordinates) {
 
     kojut.set(number, kojuData);
 
+    updateKojuCounter();
+
     function updateKojuLocation() {
 
         const newPosition = marker.getLatLng();
@@ -45,6 +47,12 @@ function createKoju(number, name, coordinates) {
             `sijainti: ${newPosition.lat.toFixed(5)}, ${newPosition.lng.toFixed(5)}`;
 
         scheduleAutosave();
+    }
+
+    function updateKojuCounter() {
+    const counter = document.getElementById("kojuCount");
+
+    counter.textContent = kojut.size;
     }
 
     updateKojuLocation();
@@ -109,6 +117,8 @@ function createKoju(number, name, coordinates) {
         kojuDiv.remove();
 
         kojut.delete(number);
+
+        updateKojuCounter();
 
         console.log("Markers remaining in memory:", kojut.size);
 
