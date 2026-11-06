@@ -1,3 +1,10 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: auto;
+}
+
 header {
     padding: 10px;
     font-size: 25px;
@@ -15,7 +22,7 @@ nav {
     padding-top: 0px;
 }
 
-#tallenna, #Tuo {
+#tallenna, #Tuo, #uusiSuunnitelma, #avaaSuunnitelma, #suunnitelmaValinta {
     margin: 10px;
     text-align: center;
     text-decoration: none;
@@ -25,12 +32,12 @@ nav {
     cursor: pointer;
 }
 
-#tallenna:hover {
+#tallenna:hover, #uusiSuunnitelma:hover {
     background-color: #35b929;
     color: white;
 }
 
-#Tuo:hover {
+#Tuo:hover, #avaaSuunnitelma:hover {
     background-color: #b9b629;
     color: white;
 }

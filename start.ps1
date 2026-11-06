@@ -1,18 +1,5 @@
-$AppRoot = if ($PSScriptRoot) {
-    $PSScriptRoot
-}
-else {
-    [AppDomain]::CurrentDomain.BaseDirectory
-}
+winget install Schniz.fnm
 
-$HTMLPath = Join-Path $AppRoot "Interface\index.html"
+fnm env --use-on-cd --shell powershell | Out-String | Invoke-Expression
 
-if (-not (Test-Path $HTMLPath)) {
-    [System.Windows.Forms.MessageBox]::Show(
-        "Could not find index.html!",
-        "Street Market Planner"
-    )
-    exit
-}
-
-Start-Process $HTMLPath
+npm start

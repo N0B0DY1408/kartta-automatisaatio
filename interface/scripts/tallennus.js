@@ -65,39 +65,37 @@ function suunnitelmaData(planName) {
 
 tallennusNappi.addEventListener('click', async function() {
 
-    const suunnitelmanNimi = await kysyTallennusNimi();
+    let suunnitelmanNimi = currentPlanName;
+
+    // Kysytään nimi vain ensimmäisellä tallennuskerralla
+    if (!suunnitelmanNimi || suunnitelmanNimi === "Untitled plan") {
+        suunnitelmanNimi = await kysyTallennusNimi();
+    }
 
     if (!suunnitelmanNimi) {
         return;
     }
 
-    // Update the current plan name
-    currentPlanName = suunnitelmanNimi;
+    try {
+        // Asetetaan suunnitelman nimi nykyiseksi nimeksi
+        currentPlanName = suunnitelmanNimi;
 
-    // Collect the complete plan using our function
-    const planData = suunnitelmaData(suunnitelmanNimi);
+        // Kerätään suunnitelman tiedot
+        const planData = suunnitelmaData(currentPlanName);
 
-    // Convert the plan into JSON text
-    const jsonData = JSON.stringify(planData, null, 4);
+        // Tallennetaan nykyiseen tiedostoon
+        const tulos = await savePlan(currentPlanName, planData);
 
-    // Create a downloadable file
-    const file = new Blob(
-        [jsonData],
-        { type: "application/json" }
-    );
+        if (tulos.success) {
+            updateSaveStatus("saved", "Suunnitelma tallennettu!");
+            console.log("Suunnitelma tallennettu:", planData);
+        }
 
-    // Create a temporary download address
-    const downloadLink = document.createElement("a");
-
-    downloadLink.href = URL.createObjectURL(file);
-    downloadLink.download = suunnitelmanNimi + ".json";
-
-    downloadLink.click();
-
-    // Release the temporary address
-    URL.revokeObjectURL(downloadLink.href);
-
-    console.log("Suunnitelma tallennettu:", planData);
+    } catch (error) {
+        updateSaveStatus("error", "Tallennus epäonnistui");
+        console.error("Tallennusvirhe:", error);
+        alert("Tallennus epäonnistui: " + error.message);
+    }
 });
 
 
@@ -266,13 +264,12 @@ function validatePlanData(plan) {
 
     return true;
 }
-
-function kysyTallennusNimi() {
+function kysyTallennusNimi(oletusNimi = currentPlanName) {
     return new Promise(function (resolve) {
         const dialog = document.getElementById("savePlanDialog");
         const input = document.getElementById("savePlanNameInput");
 
-        input.value = currentPlanName || "";
+        input.value = oletusNimi || "";
 
         dialog.addEventListener("close", function () {
             if (dialog.returnValue === "save") {
@@ -287,30 +284,39 @@ function kysyTallennusNimi() {
         input.focus();
     });
 }
-
-async function restorePlanFromDatabase() {
+async function restorePlanFromDatabase(planName = currentPlanName) {
 
     autosavePaused = true;
 
     try {
-        const planData = await loadCurrentPlan();
+        // Haetaan nimellä valittu suunnitelma
+        const planData = await loadPlan(planName);
 
         if (!planData) {
-            console.log("No saved plan to restore.");
-            return;
+            console.log("Suunnitelmaa ei löytynyt:", planName);
+            return false;
         }
 
+        // Tarkistetaan suunnitelman perustiedot ennen kartan tyhjentämistä
         if (
             planData.version !== 1 ||
             !Array.isArray(planData.kojut) ||
             !Array.isArray(planData.parkit) ||
-            !planData.map
+            !planData.map ||
+            !planData.map.center ||
+            typeof planData.map.zoom !== "number"
         ) {
-            throw new Error("Saved plan has an invalid format.");
+            throw new Error("Suunnitelman tiedot ovat virheellisessä muodossa.");
         }
 
+        // Tyhjennetään vanha kartta vasta onnistuneen tarkistuksen jälkeen
         clearCurrentPlan();
 
+        // Asetetaan valittu suunnitelma aktiiviseksi
+        currentPlanName = planData.name || planName;
+        currentPlanId = currentPlanName;
+
+        // Palautetaan kojut kartalle
         planData.kojut.forEach(function (koju) {
 
             const position = L.latLng(
@@ -323,6 +329,7 @@ async function restorePlanFromDatabase() {
             kojumäärä = Math.max(kojumäärä, koju.number + 1);
         });
 
+        // Palautetaan parkkialueet kartalle
         planData.parkit.forEach(function (area) {
 
             const corners = area.coordinates.map(function (corner) {
@@ -344,6 +351,7 @@ async function restorePlanFromDatabase() {
             );
         });
 
+        // Palautetaan kartan näkymä
         map.setView(
             [planData.map.center.lat, planData.map.center.lng],
             planData.map.zoom
@@ -353,16 +361,21 @@ async function restorePlanFromDatabase() {
             map.setBearing(planData.map.bearing || 0);
         }
 
-        currentPlanName = planData.name || "Untitled plan";
+        console.log("Suunnitelma ladattu:", planData);
 
-        console.log("Plan restored from IndexedDB:", planData);
+        updateSaveStatus("saved", "Suunnitelma ladattu: " + currentPlanName);
+
+        return true;
 
     } catch (error) {
-        console.error("Failed to restore plan:", error);
+        console.error("Suunnitelman lataaminen epäonnistui:", error);
+        alert("Suunnitelman lataaminen epäonnistui: " + error.message);
+
+        return false;
 
     } finally {
         autosavePaused = false;
-        console.log("Autosave resumed.");
+        console.log("Automaattitallennus jatkuu.");
     }
 }
 
@@ -540,3 +553,124 @@ async function testLoadFromDatabase() {
 }
 
 restorePlanFromDatabase()
+
+const uusiSuunnitelmaNappi = document.getElementById("uusiSuunnitelma");
+
+uusiSuunnitelmaNappi.addEventListener("click", async function () {
+
+    // Kysytään uuden suunnitelman nimi
+    const uusiNimi = await kysyTallennusNimi("");
+
+    if (!uusiNimi) {
+        return;
+    }
+
+    // Tarkistetaan nimen sallittu muoto
+    if (!/^[a-zA-Z0-9åäöÅÄÖ _-]+$/.test(uusiNimi)) {
+        alert("Suunnitelman nimessä on kiellettyjä merkkejä.");
+        return;
+    }
+
+    try {
+        // Tarkistetaan, onko samanniminen suunnitelma jo olemassa
+        const suunnitelmat = await getAllPlans();
+
+        const nimiOnKaytossa = suunnitelmat.some(function (plan) {
+            return plan.name.toLowerCase() === uusiNimi.toLowerCase();
+        });
+
+        if (nimiOnKaytossa) {
+            alert("Samanniminen suunnitelma on jo olemassa. Valitse toinen nimi.");
+            return;
+        }
+
+        // Keskeytetään automaattitallennus alustamisen ajaksi
+        autosavePaused = true;
+        clearTimeout(autosaveTimer);
+
+        // Tyhjennetään nykyinen kartta
+        clearCurrentPlan();
+
+        // Asetetaan uusi suunnitelma aktiiviseksi
+        currentPlanName = uusiNimi;
+        currentPlanId = uusiNimi;
+
+        // Luodaan uuden suunnitelman tiedot
+        const planData = suunnitelmaData(uusiNimi);
+
+        // Tallennetaan uusi tyhjä suunnitelma
+        const tulos = await savePlan(uusiNimi, planData);
+
+        if (!tulos.success) {
+            throw new Error("Uuden suunnitelman tallennus epäonnistui.");
+        }
+
+        updateSaveStatus("saved", "Uusi suunnitelma luotu!");
+
+        console.log("Uusi suunnitelma luotu:", planData);
+
+    } catch (error) {
+        console.error("Uuden suunnitelman luontivirhe:", error);
+        alert("Uuden suunnitelman luominen epäonnistui: " + error.message);
+
+    } finally {
+        // Käynnistetään automaattitallennus uudelleen
+        autosavePaused = false;
+        await paivitaSuunnitelmaLista();
+    }
+});
+
+async function paivitaSuunnitelmaLista() {
+
+    const valinta = document.getElementById("suunnitelmaValinta");
+
+    try {
+        // Haetaan kaikki tallennetut suunnitelmat
+        const suunnitelmat = await getAllPlans();
+
+        // Tyhjennetään vanha lista
+        valinta.innerHTML = "";
+
+        // Lisätään oletusvalinta
+        const oletus = document.createElement("option");
+        oletus.value = "";
+        oletus.textContent = "Valitse suunnitelma";
+        valinta.appendChild(oletus);
+
+        // Lisätään suunnitelmat valintalistaan
+        suunnitelmat.forEach(function (plan) {
+
+            const vaihtoehto = document.createElement("option");
+
+            vaihtoehto.value = plan.name;
+            vaihtoehto.textContent = plan.name;
+
+            valinta.appendChild(vaihtoehto);
+        });
+
+    } catch (error) {
+        console.error("Suunnitelmien hakeminen epäonnistui:", error);
+    }
+}
+
+const avaaSuunnitelmaNappi = document.getElementById("avaaSuunnitelma");
+
+avaaSuunnitelmaNappi.addEventListener("click", async function () {
+
+    const valinta = document.getElementById("suunnitelmaValinta");
+    const suunnitelmanNimi = valinta.value;
+
+    if (!suunnitelmanNimi) {
+        alert("Valitse ensin avattava suunnitelma.");
+        return;
+    }
+
+    const onnistui = await restorePlanFromDatabase(suunnitelmanNimi);
+
+    if (onnistui) {
+        await paivitaSuunnitelmaLista();
+        console.log("Avattu suunnitelma:", suunnitelmanNimi);
+    }
+});
+
+paivitaSuunnitelmaLista();
