@@ -1,11 +1,14 @@
 param (
-    [string]$AppRoot = (Split-Path $PSScriptRoot -Parent)
+    [Parameter(Mandatory = $true)]
+    [string]$DataRoot
 )
 
-$PlansFolder = Join-Path $AppRoot "Suunnitelmat"
-$BackupFolder = Join-Path $AppRoot "varakansio"
-$LogFile = Join-Path $AppRoot "varalta.txt"
+$PlansFolder = Join-Path $DataRoot "Suunnitelmat"
+$BackupFolder = Join-Path $DataRoot "varmuuskopiot"
+$LogFile = Join-Path $DataRoot "varmuuskopiointi.log"
 
+$BackupTime = Get-Date -Format "yyyy-MM-dd_HHmmss"
+$CurrentBackupFolder = Join-Path $BackupFolder $BackupTime
 function Write-Log {
     param (
         [string]$Message
@@ -24,9 +27,7 @@ function Backup-Plans {
         return
     }
 
-    if (-not (Test-Path $BackupFolder)) {
-        New-Item -ItemType Directory -Path $BackupFolder | Out-Null
-    }
+    New-Item -ItemType Directory -Path $CurrentBackupFolder -Force | Out-Null
 
     $Plans = Get-ChildItem -Path $PlansFolder -Filter "*.json"
 
@@ -37,7 +38,7 @@ function Backup-Plans {
 
     foreach ($Plan in $Plans) {
 
-        $Destination = Join-Path $BackupFolder $Plan.Name
+        $Destination = Join-Path $CurrentBackupFolder $Plan.Name
 
         Copy-Item -Path $Plan.FullName -Destination $Destination -Force
 

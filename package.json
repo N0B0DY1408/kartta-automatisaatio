@@ -4,7 +4,45 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "build": {
+    "appId": "fi.karttaautomaatio.app",
+    "productName": "Kartta-automaatio",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "interface/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "powershell",
+        "to": "powershell",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
   },
   "repository": {
     "type": "git",
@@ -19,6 +57,11 @@
   },
   "homepage": "https://github.com/N0B0DY1408/kartta-automatisaatio#readme",
   "devDependencies": {
-    "electron": "^45.2.2"
+    "electron": "^45.2.2",
+    "electron-builder": "^26.18.0"
+  },
+  "allowScripts": {
+    "electron-builder@26.18.0": true,
+    "electron-winstaller@5.4.0": true
   }
 }

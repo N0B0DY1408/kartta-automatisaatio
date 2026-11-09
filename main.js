@@ -1,16 +1,29 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs/promises");
+const { spawn } = require("child_process");
 
-// Suunnitelmien tallennuskansio
-const plansFolder = path.join(__dirname, "Suunnitelmat");
+// Käyttäjän omien tietojen tallennussijainti
+const appDataFolder = app.getPath("userData");
 
-// Varmistetaan, että tallennuskansio on olemassa
-async function ensurePlansFolder() {
+const plansFolder = path.join(appDataFolder, "Suunnitelmat");
+const backupFolder = path.join(appDataFolder, "varmuuskopiot");
+
+let mainWindow = null;
+
+let isClosing = false;
+let closeConfirmed = false;
+let closeCancelled = false;
+
+
+// LUODAAN TARVITTAVAT KANSIOT
+async function ensureDataFolders() {
     await fs.mkdir(plansFolder, { recursive: true });
+    await fs.mkdir(backupFolder, { recursive: true });
 }
 
-// Tarkistetaan suunnitelman nimi
+
+// TARKISTETAAN SUUNNITELMAN NIMI
 function validatePlanName(name) {
     if (typeof name !== "string" || !name.trim()) {
         throw new Error("Suunnitelman nimi puuttuu.");
@@ -24,17 +37,84 @@ function validatePlanName(name) {
     return name.trim();
 }
 
-// Muodostetaan tiedostopolku
+
+// MUODOSTETAAN TIEDOSTOPOLKU
 function getPlanPath(name) {
     const safeName = validatePlanName(name);
+
     return path.join(plansFolder, safeName + ".json");
 }
+
+console.log("Electronin arkkitehtuuri:", process.arch);
+
+// SUORITETAAN POWERSHELL-VARMUUSKOPIOINTI
+function runBackup() {
+    return new Promise(function (resolve, reject) {
+
+        const backupScript = app.isPackaged
+            ? path.join(process.resourcesPath, "powershell", "backup.ps1")
+            : path.join(__dirname, "powershell", "backup.ps1");
+
+        // Selvitetään Windowsin järjestelmäkansion sijainti
+        const windowsFolder = process.env.SystemRoot || "C:\\Windows";
+
+        // Valitaan PowerShellin polku Electronin arkkitehtuurin perusteella
+        const powershellPath = process.arch === "ia32"
+            ? path.join(
+                windowsFolder,
+                "Sysnative",
+                "WindowsPowerShell",
+                "v1.0",
+                "powershell.exe"
+            )
+            : path.join(
+                windowsFolder,
+                "System32",
+                "WindowsPowerShell",
+                "v1.0",
+                "powershell.exe"
+            );s
+
+        const powershell = spawn(
+            powershellPath,
+            [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                backupScript,
+                appDataFolder
+            ],
+            {
+            cwd: appDataFolder,
+            windowsHide: true
+            }
+        );
+
+        powershell.on("error", function (error) {
+            reject(error);
+        });
+
+        powershell.on("close", function (code) {
+            if (code === 0) {
+                resolve();
+            } else {
+                reject(
+                    new Error(
+                        "Varmuuskopiointi epäonnistui. PowerShellin palautuskoodi: " + code
+                    )
+                );
+            }
+        });
+    });
+}
+
 
 
 // TALLENNA SUUNNITELMA
 ipcMain.handle("save-plan", async function (event, name, data) {
     try {
-        await ensurePlansFolder();
+        await ensureDataFolders();
 
         const filePath = getPlanPath(name);
 
@@ -76,7 +156,7 @@ ipcMain.handle("load-plan", async function (event, name) {
 
 // LISTAA SUUNNITELMAT
 ipcMain.handle("list-plans", async function () {
-    await ensurePlansFolder();
+    await ensureDataFolders();
 
     const files = await fs.readdir(plansFolder, {
         withFileTypes: true
@@ -118,9 +198,24 @@ ipcMain.handle("delete-plan", async function (event, name) {
 });
 
 
+// SULKEMISEN VAHVISTUS
+ipcMain.handle("confirm-close", function () {
+    closeConfirmed = true;
+});
+
+
+// SULKEMISEN PERUUTUS
+ipcMain.handle("cancel-close", function () {
+    closeCancelled = true;
+});
+
+
 // SOVELLUKSEN IKKUNA
-function createWindow() {
-    const mainWindow = new BrowserWindow({
+async function createWindow() {
+
+    await ensureDataFolders();
+
+    mainWindow = new BrowserWindow({
         width: 1400,
         height: 900,
 
@@ -134,10 +229,106 @@ function createWindow() {
     mainWindow.loadFile(
         path.join(__dirname, "interface", "index.html")
     );
+
+    mainWindow.on("close", function (event) {
+
+        if (closeConfirmed) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (isClosing) {
+            return;
+        }
+
+        isClosing = true;
+        closeCancelled = false;
+
+        mainWindow.webContents.send("prepare-close");
+
+        const closeCheck = setInterval(async function () {
+
+            if (closeCancelled) {
+                clearInterval(closeCheck);
+                isClosing = false;
+                return;
+            }
+
+            if (closeConfirmed) {
+                clearInterval(closeCheck);
+
+                try {
+                    console.log(
+                        "Tallennukset viimeistelty. Aloitetaan varmuuskopiointi."
+                    );
+
+                    await runBackup();
+
+                    console.log("Varmuuskopiointi onnistui.");
+
+                    mainWindow.close();
+
+                } catch (error) {
+                    console.error("Varmuuskopiointi epäonnistui:", error);
+
+                    closeConfirmed = false;
+                    isClosing = false;
+
+                    if (mainWindow && !mainWindow.isDestroyed()) {
+
+                        const { response } = await dialog.showMessageBox(
+                            mainWindow,
+                            {
+                                type: "warning",
+                                title: "Varmuuskopiointi epäonnistui",
+
+                                message: "Varmuuskopiointia ei voitu suorittaa.",
+                                detail: error.message,
+
+                                buttons: [
+                                    "Yritä uudelleen",
+                                    "Sulje ilman varmuuskopiota",
+                                    "Peruuta sulkeminen"
+                                ],
+
+                                defaultId: 0,
+                                cancelId: 2
+                            }
+                        );
+
+                        if (response === 0) {
+                            // Yritetään sulkemista ja varmuuskopiointia uudelleen
+                            mainWindow.close();
+
+                        } else if (response === 1) {
+                            // Suljetaan ilman varmuuskopiota
+                            closeConfirmed = true;
+                            mainWindow.close();
+
+                        } else {
+                            // Jatketaan ohjelman käyttöä
+                            console.log("Sulkeminen peruutettu.");
+                        }
+                    }
+                }
+            }
+
+        }, 100);
+    });
 }
 
-app.whenReady().then(createWindow);
 
+// KÄYNNISTETÄÄN SOVELLUS
+app.whenReady()
+    .then(createWindow)
+    .catch(function (error) {
+        console.error("Sovelluksen käynnistäminen epäonnistui:", error);
+        app.quit();
+    });
+
+
+// SULJETAAN SOVELLUS KÄYTTÖJÄRJESTELMÄN MUKAISESTI
 app.on("window-all-closed", function () {
     if (process.platform !== "darwin") {
         app.quit();
