@@ -99,6 +99,69 @@ tallennusNappi.addEventListener('click', async function() {
 });
 
 
+const julkaiseKarttaNappi = document.getElementById("julkaiseKartta");
+
+julkaiseKarttaNappi.addEventListener("click", async function () {
+
+    const valinta = document.getElementById("suunnitelmaValinta");
+    const suunnitelmanNimi = valinta.value;
+
+    // Tarkistetaan, että suunnitelma on valittu
+    if (!suunnitelmanNimi) {
+        alert("Valitse ensin julkaistava suunnitelma.");
+        return;
+    }
+
+    // Varmistetaan käyttäjän valinta
+    const vahvistus = confirm(
+        "Haluatko julkaista suunnitelman '" + suunnitelmanNimi +
+        "'?\n\nJulkaisu korvaa aiemmin julkaistun kartan."
+    );
+
+    if (!vahvistus) {
+        return;
+    }
+
+    try {
+        julkaiseKarttaNappi.disabled = true;
+        julkaiseKarttaNappi.textContent = "Julkaistaan...";
+
+        // Jos julkaistava suunnitelma on aktiivinen,
+        // viimeistellään sen odottavat automaattitallennukset.
+        if (suunnitelmanNimi === currentPlanName) {
+            await finishAutosaveBeforeClose();
+        }
+
+        // Käynnistetään PowerShell-julkaisu
+        const tulos = await window.planStorage.publishPlan(suunnitelmanNimi);
+
+        if (!tulos.success) {
+            throw new Error(tulos.message || "Julkaisu epäonnistui.");
+        }
+
+        console.log("Suunnitelma julkaistu:", suunnitelmanNimi);
+
+        alert(
+            "Kartta julkaistiin onnistuneesti!\n\n" +
+            "Julkaistu suunnitelma: " + suunnitelmanNimi
+        );
+
+    } catch (error) {
+        console.error("Kartanjulkaisu epäonnistui:", error);
+
+        alert(
+            "Karttaa ei voitu julkaista.\n\n" +
+            error.message
+        );
+
+    } finally {
+        julkaiseKarttaNappi.disabled = false;
+        julkaiseKarttaNappi.textContent = "Julkaise kartta";
+    }
+});
+
+
+
 function clearCurrentPlan() {
 
     for (const koju of kojut.values()) {

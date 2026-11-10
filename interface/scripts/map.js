@@ -14,6 +14,26 @@ map.on("zoomend", function () {
     scheduleAutosave();
 });
 
+// Lisätään Geomanin piirtotyökalut kartalle
+map.pm.addControls({
+    position: "topleft",
+
+    drawMarker: false,
+    drawCircle: false,
+    drawCircleMarker: false,
+    drawPolyline: false,
+    drawPolygon: false,
+
+    drawRectangle: true,
+
+    editMode: true,
+    dragMode: true,
+    removalMode: false,
+
+    cutPolygon: false,
+    rotateMode: true
+});
+
 //tehdään kartalle markkerereita joita käyttäjä voi lisätä klikkaamalla karttaa
 const markersSection = document.getElementById("markers");
 
@@ -77,26 +97,6 @@ const parkingSection = document.getElementById("parkit");
 let parkingCounter = 1;
 
 const parkit = new Map();
-
-// Lisätään Geomanin piirtotyökalut kartalle
-map.pm.addControls({
-    position: "topleft",
-
-    drawMarker: false,
-    drawCircle: false,
-    drawCircleMarker: false,
-    drawPolyline: false,
-    drawPolygon: false,
-
-    drawRectangle: true,
-
-    editMode: true,
-    dragMode: true,
-    removalMode: true,
-
-    cutPolygon: false,
-    rotateMode: true
-});
 
 
 // Kun käyttäjä piirtää uuden suorakulmion

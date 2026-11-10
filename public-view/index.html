@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+
+<html lang="fi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kartta järjestelmä</title>
+
+    <!--leafletin css linkki-->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+
+    <link rel="stylesheet" href="style.css">
+    
+</head>
+
+<body>
+
+    <header>
+        <h1 id="eventName">Tapahtumakartta</h1>
+        <p>Katso tapahtuma-alueen kojut ja niiden sijainnit.</p>
+    </header>
+
+    <main>
+
+        
+    <section id="mapSection">
+        <h2>Tapahtuma-alue</h2>
+
+        <div id="map"></div>
+
+        <div id="mapLegend">
+            <div class="legendItem">
+                <span class="legendMarker"></span>
+                <span>Myyntikoju</span>
+            </div>
+
+            <div class="legendItem">
+                <span class="legendParking"></span>
+                <span>Pysäköintialue</span>
+            </div>
+        </div>
+    </section>
+
+
+        <section id="stallSection">
+            <h2>Myyntikojut</h2>
+            <div id="stallList">
+                <p>Ladataan kojuja...</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!--leafletin js linkki-->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+   
+    <script src="scripts/viewer.js"></script>
+    
+
+</body>
+
+</html>

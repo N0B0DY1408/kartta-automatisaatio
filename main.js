@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs/promises");
 const { spawn } = require("child_process");
+const publicViewFolder = path.join(__dirname, "public-view");   
 
 // Käyttäjän omien tietojen tallennussijainti
 const appDataFolder = app.getPath("userData");
@@ -73,7 +74,7 @@ function runBackup() {
                 "WindowsPowerShell",
                 "v1.0",
                 "powershell.exe"
-            );s
+            );
 
         const powershell = spawn(
             powershellPath,
@@ -208,6 +209,75 @@ ipcMain.handle("confirm-close", function () {
 ipcMain.handle("cancel-close", function () {
     closeCancelled = true;
 });
+
+
+ipcMain.handle("publish-plan", async function (event, planName) {
+    try {
+        // Tarkistetaan suunnitelman nimi
+        const safeName = validatePlanName(planName);
+
+        // Määritetään PowerShell-skriptin polku
+        const publishScript = path.join(
+            __dirname,
+            "powershell",
+            "julkaisu.ps1"
+        );
+
+        // Määritetään Windows PowerShellin polku
+        const windowsFolder = process.env.SystemRoot || "C:\\Windows";
+        const powershellPath = process.arch === "ia32"
+            ? path.join(windowsFolder, "Sysnative", "WindowsPowerShell", "v1.0", "powershell.exe")
+            : path.join(windowsFolder, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+
+        // Käynnistetään PowerShell ja välitetään sille tarvittavat tiedot
+        return await new Promise(function (resolve, reject) {
+            const process = spawn(powershellPath, [
+                "-NoProfile",
+                "-ExecutionPolicy", "Bypass",
+                "-File", publishScript,
+                "-PlanName", safeName,
+                "-DataRoot", appDataFolder,
+                "-PublicViewFolder", publicViewFolder
+            ], {
+                cwd: appDataFolder,
+                windowsHide: true
+            });
+
+            let output = "";
+            let errorOutput = "";
+
+            process.stdout.on("data", function (data) {
+                output += data.toString();
+            });
+
+            process.stderr.on("data", function (data) {
+                errorOutput += data.toString();
+            });
+
+            process.on("error", function (error) {
+                reject(error);
+            });
+
+            process.on("close", function (code) {
+                if (code === 0) {
+                    resolve({
+                        success: true,
+                        message: output.trim() || "Suunnitelma julkaistu."
+                    });
+                } else {
+                    reject(new Error(
+                        errorOutput.trim() || "Julkaisu epäonnistui."
+                    ));
+                }
+            });
+        });
+
+    } catch (error) {
+        console.error("Julkaisuvirhe:", error);
+        throw error;
+    }
+});
+
 
 
 // SOVELLUKSEN IKKUNA

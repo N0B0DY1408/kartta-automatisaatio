@@ -31,5 +31,9 @@ contextBridge.exposeInMainWorld("planStorage", {
     // Ilmoittaa, jos tallennuksen viimeistely epäonnistuu
     cancelClose: function () {
         return ipcRenderer.invoke("cancel-close");
-    }
+    },
+
+    publishPlan: function (name) {
+    return ipcRenderer.invoke("publish-plan", name);
+    },
 });

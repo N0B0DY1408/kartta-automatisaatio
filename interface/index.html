@@ -36,6 +36,8 @@
 
         <button id="avaaSuunnitelma">Avaa suunnitelma</button>
 
+        <button id="julkaiseKartta">Julkaise kartta</button>
+
         <button id="Tuo">Tuo suunnitelma</button>
 
         <input type="file" id="TuoInput" accept=".json,application/json" hidden>
@@ -43,6 +45,13 @@
         <div id="kojuCounter">
             Myyntikojuja: <span id="kojuCount">0</span>
         </div>
+
+        <h4>pelkkä kartta: </h3>
+
+        <label id="switch">
+            <input type="checkbox">
+            <span class="slider round"></span>
+        </label>
 
         <div id="saveStatus">Saved</div>
     </nav>
@@ -114,7 +123,7 @@
         </form>
     </dialog>
 
-    <div id="map"></div>
+    <div id="map" class="mapdiv"></div>
 
     <!--leafletin js linkki-->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -129,6 +138,7 @@
     <script src="scripts/varastointi.js"></script>
     <script src="scripts/tallennus.js"></script>
     <script src="scripts/autotallennus.js"></script>
+    <script src="scripts/sivu.js"></script>
 
 </body>
 
