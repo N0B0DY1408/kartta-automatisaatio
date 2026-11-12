@@ -17,12 +17,30 @@
       "main.js",
       "preload.js",
       "interface/**/*",
-      "package.json"
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "asarUnpack": [
+      "node_modules/**/*"
     ],
     "extraResources": [
       {
         "from": "powershell",
         "to": "powershell",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "runtime",
+        "to": "runtime",
+        "filter": [
+          "node.exe"
+        ]
+      },
+      {
+        "from": "public-view",
+        "to": "public-view",
         "filter": [
           "**/*"
         ]
@@ -32,9 +50,7 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         }
       ]
     },
@@ -44,6 +60,7 @@
       "allowToChangeInstallationDirectory": true
     }
   },
+
   "repository": {
     "type": "git",
     "url": "git+https://github.com/N0B0DY1408/kartta-automatisaatio.git"
@@ -62,6 +79,11 @@
   },
   "allowScripts": {
     "electron-builder@26.18.0": true,
-    "electron-winstaller@5.4.0": true
+    "electron-winstaller@5.4.0": true,
+    "esbuild@0.28.2": true,
+    "workerd@1.20261110.1": true
+  },
+  "dependencies": {
+    "wrangler": "^4.160.1"
   }
 }

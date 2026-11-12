@@ -2,10 +2,12 @@ const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
 const fs = require("fs/promises");
 const { spawn } = require("child_process");
-const publicViewFolder = path.join(__dirname, "public-view");   
 
 // Käyttäjän omien tietojen tallennussijainti
 const appDataFolder = app.getPath("userData");
+
+// Julkisen sivuston muokattava kansio
+const publicViewFolder = path.join(appDataFolder, "public-view");
 
 const plansFolder = path.join(appDataFolder, "Suunnitelmat");
 const backupFolder = path.join(appDataFolder, "varmuuskopiot");
@@ -21,6 +23,30 @@ let closeCancelled = false;
 async function ensureDataFolders() {
     await fs.mkdir(plansFolder, { recursive: true });
     await fs.mkdir(backupFolder, { recursive: true });
+}
+
+// LUODAAN JULKISEN SIVUSTON KANSIO
+async function ensurePublicViewFolder() {
+
+    const sourceFolder = app.isPackaged
+        ? path.join(process.resourcesPath, "public-view")
+        : path.join(__dirname, "public-view");
+
+    try {
+        await fs.access(publicViewFolder);
+
+    } catch (error) {
+
+        if (error.code !== "ENOENT") {
+            throw error;
+        }
+
+        await fs.cp(sourceFolder, publicViewFolder, {
+            recursive: true
+        });
+
+        console.log("Julkisen sivuston tiedostot kopioitu AppData-kansioon.");
+    }
 }
 
 
@@ -217,17 +243,32 @@ ipcMain.handle("publish-plan", async function (event, planName) {
         const safeName = validatePlanName(planName);
 
         // Määritetään PowerShell-skriptin polku
-        const publishScript = path.join(
-            __dirname,
-            "powershell",
-            "julkaisu.ps1"
-        );
+        const publishScript = app.isPackaged
+            ? path.join(process.resourcesPath, "powershell", "julkaisu.ps1")
+            : path.join(__dirname, "powershell", "julkaisu.ps1");
+
+        try {
+            await fs.access(publishScript);
+            console.log("Julkaisuskripti löytyi.");
+        } catch (error) {
+            throw new Error("Julkaisuskriptiä ei löytynyt polusta: " + publishScript);
+        }
 
         // Määritetään Windows PowerShellin polku
         const windowsFolder = process.env.SystemRoot || "C:\\Windows";
         const powershellPath = process.arch === "ia32"
             ? path.join(windowsFolder, "Sysnative", "WindowsPowerShell", "v1.0", "powershell.exe")
             : path.join(windowsFolder, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+
+        // Määritetään Node.js:n polku
+        const nodePath = app.isPackaged
+            ? path.join(process.resourcesPath, "runtime", "node.exe")
+            : path.join(__dirname, "runtime", "node.exe");
+
+        // Määritetään Wranglerin käynnistystiedoston polku
+        const wranglerPath = app.isPackaged
+            ? path.join(process.resourcesPath, "app.asar.unpacked", "node_modules", "wrangler", "bin", "wrangler.js")
+            : path.join(__dirname, "node_modules", "wrangler", "bin", "wrangler.js");
 
         // Käynnistetään PowerShell ja välitetään sille tarvittavat tiedot
         return await new Promise(function (resolve, reject) {
@@ -237,7 +278,9 @@ ipcMain.handle("publish-plan", async function (event, planName) {
                 "-File", publishScript,
                 "-PlanName", safeName,
                 "-DataRoot", appDataFolder,
-                "-PublicViewFolder", publicViewFolder
+                "-PublicViewFolder", publicViewFolder,
+                "-NodePath", nodePath,
+                "-WranglerPath", wranglerPath,
             ], {
                 cwd: appDataFolder,
                 windowsHide: true
@@ -284,6 +327,7 @@ ipcMain.handle("publish-plan", async function (event, planName) {
 async function createWindow() {
 
     await ensureDataFolders();
+    await ensurePublicViewFolder();
 
     mainWindow = new BrowserWindow({
         width: 1400,

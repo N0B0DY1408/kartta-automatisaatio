@@ -7,7 +7,13 @@ param(
     [string]$DataRoot,
 
     [Parameter(Mandatory = $true)]
-    [string]$PublicViewFolder
+    [string]$PublicViewFolder,
+
+    [Parameter(Mandatory = $true)]
+    [string]$NodePath,
+
+    [Parameter(Mandatory = $true)]
+    [string]$WranglerPath
 )
 
 $ErrorActionPreference = 'Stop'
@@ -19,6 +25,9 @@ $SourceFile = Join-Path $PlansFolder ($PlanName + '.json')
 $TargetFile = Join-Path $PublicDataFolder 'active-plan.json'
 $TempFile = Join-Path $PublicDataFolder 'active-plan.tmp'
 $LogFile = Join-Path $DataRoot 'julkaisuloki.log'
+
+
+$CloudflareProject = 'kartta-automatisaatio'
 
 # Write an event to the log file
 function Write-PublishLog {
@@ -70,10 +79,26 @@ try {
     # Replace the currently published plan
     Move-Item -LiteralPath $TempFile -Destination $TargetFile -Force
 
-    # Log successful publication
-    Write-PublishLog -Status 'SUCCESS' -Message ('Published to: ' + $TargetFile)
+    # Check that Node.js and Wrangler files exist
+    if (-not (Test-Path -LiteralPath $NodePath -PathType Leaf)) {
+        throw 'Node.js executable was not found.'
+    }
 
-    Write-Output 'Publication successful.'
+    if (-not (Test-Path -LiteralPath $WranglerPath -PathType Leaf)) {
+        throw 'Wrangler script was not found.'
+    }
+
+    # Deploy the public website to Cloudflare Pages
+    & $NodePath $WranglerPath pages deploy $PublicViewFolder "--project-name=$CloudflareProject"
+
+    if ($LASTEXITCODE -ne 0) {
+        throw 'Cloudflare Pages deployment failed.'
+    }
+
+    # Log successful publication
+    Write-PublishLog -Status 'SUCCESS' -Message 'Published locally and to Cloudflare Pages.'
+
+    Write-Output 'Publication to Cloudflare Pages successful.'
     exit 0
 }
 catch {
