@@ -149,14 +149,32 @@ input:checked + .slider:before {
 #sivupaneeli {
     display: flex;
     flex-direction: column;
-    width: 320px;
+    width: 340px;
     height: 100%;
     float: left;
+    max-height: 880px;
+    overflow: hidden;
+    list-style-type: none;
+}
+
+#sivupaneeli input[type=text] {
+  float: left;
+  padding: 6px;
+  border-style: solid;
+  border-radius: 5px;
+  font-size: 17px;
+  margin-bottom: 5px;
+  max-width: 300px;
+  min-width: 300px;
 }
 
 section {
     padding-bottom: 5px;
     padding-top: 5px;
+}
+
+section h2 {
+    margin-top: 5px;
 }
 
 #markers {
@@ -168,6 +186,7 @@ section {
     height: auto;
     width: 300px;
     margin-bottom: 10px;
+    overflow: scroll;
 }
 
 .koju {
