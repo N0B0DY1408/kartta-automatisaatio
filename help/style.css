@@ -1,0 +1,53 @@
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 25px;
+    background-color: #f2f4f7;
+    color: #333;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+header h1 {
+    margin-bottom: 8px;
+}
+
+main {
+    max-width: 650px;
+    margin: auto;
+}
+
+.card {
+    background-color: white;
+    padding: 22px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+button {
+    padding: 11px 18px;
+    border: none;
+    border-radius: 6px;
+    background-color: #2878b9;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #195b91;
+}
+
+#qrImage {
+    display: block;
+    width: 230px;
+    max-width: 100%;
+    height: auto;
+    margin: 20px auto;
+}

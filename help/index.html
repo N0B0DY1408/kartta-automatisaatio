@@ -1,0 +1,46 @@
+
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kartta-automaation ohjeet</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>Kartta-automaation ohjeet</h1>
+        <p>Käyttöohjeet ja tapahtumakartan QR-koodi</p>
+    </header>
+
+    <main>
+        <section class="card">
+            <h2>Käyttöohje</h2>
+            <p>
+                Avaa käyttöohje, josta löydät tietoa sovelluksen
+                toiminnoista ja käytöstä.
+            </p>
+            <button id="openDocx">Avaa käyttöohje</button>
+        </section>
+
+        <section class="card">
+            <h2>Tapahtumakartan QR-koodi</h2>
+            <p>
+                Skannaamalla QR-koodin pääset katsomaan
+                tapahtuman julkista karttaa.
+            </p>
+
+            <img
+                src="qrkoodi.png"
+                alt="Tapahtumakartan QR-koodi"
+                id="qrImage"
+            >
+
+            <button id="openPdf">Avaa tulostettava QR-koodi (PDF)</button>
+        </section>
+    </main>
+
+    <script src="help.js"></script>
+</body>
+</html>

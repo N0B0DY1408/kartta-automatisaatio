@@ -23,7 +23,7 @@ nav {
     padding-top: 0px;
 }
 
-#tallenna, #Tuo, #uusiSuunnitelma, #avaaSuunnitelma, #suunnitelmaValinta, #julkaiseKartta{
+#tallenna, #Tuo, #uusiSuunnitelma, #avaaSuunnitelma, #suunnitelmaValinta, #julkaiseKartta, #avaaOhjeet{
     margin: 10px;
     text-align: center;
     text-decoration: none;
@@ -40,6 +40,11 @@ nav {
 
 #Tuo:hover, #avaaSuunnitelma:hover, #julkaiseKartta:hover {
     background-color: #b9b629;
+    color: white;
+}
+
+#avaaOhjeet:hover {
+    background-color: #2980b9;
     color: white;
 }
 

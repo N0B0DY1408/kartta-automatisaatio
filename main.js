@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const { app, BrowserWindow, ipcMain, dialog, shell } = require("electron");
 const path = require("path");
 const fs = require("fs/promises");
 const { spawn } = require("child_process");
@@ -17,6 +17,7 @@ let mainWindow = null;
 let isClosing = false;
 let closeConfirmed = false;
 let closeCancelled = false;
+let helpWindow = null;
 
 
 // LUODAAN TARVITTAVAT KANSIOT
@@ -321,7 +322,72 @@ ipcMain.handle("publish-plan", async function (event, planName) {
     }
 });
 
+// AVATAAN OHJEIKKUNA
+ipcMain.handle("open-help", function () {
 
+    if (helpWindow && !helpWindow.isDestroyed()) {
+        helpWindow.focus();
+        return;
+    }
+
+    const helpFolder = app.isPackaged
+        ? path.join(process.resourcesPath, "help")
+        : path.join(__dirname, "help");
+
+    helpWindow = new BrowserWindow({
+        width: 850,
+        height: 750,
+        minWidth: 600,
+        minHeight: 500,
+        parent: mainWindow,
+        modal: false,
+        autoHideMenuBar: true,
+
+        webPreferences: {
+            preload: path.join(__dirname, "preload.js"),
+            contextIsolation: true,
+            nodeIntegration: false
+        }
+    });
+
+    helpWindow.loadFile(path.join(helpFolder, "index.html"));
+
+    helpWindow.on("closed", function () {
+        helpWindow = null;
+    });
+});
+
+
+// AVATAAN OHJETIEDOSTO
+ipcMain.handle("open-help-file", async function (event, fileName) {
+
+    const allowedFiles = [
+        "ohjeet.docx",
+        "qrkoodi.pdf"
+    ];
+
+    if (!allowedFiles.includes(fileName)) {
+        throw new Error("Tuntematon ohjetiedosto.");
+    }
+
+    const helpFolder = app.isPackaged
+        ? path.join(process.resourcesPath, "help")
+        : path.join(__dirname, "help");
+
+    const filePath = path.join(helpFolder, fileName);
+
+    await fs.access(filePath);
+
+    const result = await shell.openPath(filePath);
+
+    if (result) {
+        throw new Error("Tiedoston avaaminen epäonnistui: " + result);
+    }
+
+    return {
+        success: true
+    };
+});
 
 // SOVELLUKSEN IKKUNA
 async function createWindow() {

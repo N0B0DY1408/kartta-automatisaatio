@@ -36,4 +36,12 @@ contextBridge.exposeInMainWorld("planStorage", {
     publishPlan: function (name) {
     return ipcRenderer.invoke("publish-plan", name);
     },
+
+    openHelp: function () {
+        return ipcRenderer.invoke("open-help");
+    },
+
+    openHelpFile: function (fileName) {
+        return ipcRenderer.invoke("open-help-file", fileName);
+    }
 });

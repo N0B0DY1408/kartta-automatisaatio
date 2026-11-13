@@ -33,3 +33,9 @@ searchInput.addEventListener("input", function () {
         }
     });
 });
+
+const ohjeetButton = document.getElementById("avaaOhjeet");
+
+ohjeetButton.addEventListener("click", function () {
+    window.planStorage.openHelp();
+});

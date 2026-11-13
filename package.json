@@ -44,7 +44,14 @@
         "filter": [
           "**/*"
         ]
-      }
+      },
+      {
+        "from": "help",
+        "to": "help",
+        "filter": [
+            "**/*"
+        ]
+    }
     ],
     "win": {
       "target": [
