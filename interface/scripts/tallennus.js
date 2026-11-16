@@ -101,18 +101,43 @@ tallennusNappi.addEventListener('click', async function() {
 
 const julkaiseKarttaNappi = document.getElementById("julkaiseKartta");
 
+
+function requestPublishCode() {
+    const dialog = document.getElementById("publishCodeDialog");
+    const input = document.getElementById("publishCodeInput");
+
+    input.value = "";
+    dialog.showModal();
+
+    return new Promise(function (resolve) {
+
+        dialog.addEventListener("close", function () {
+
+            if (dialog.returnValue !== "publish") {
+                resolve(null);
+                return;
+            }
+
+            const code = input.value;
+            input.value = "";
+
+            resolve(code);
+
+        }, { once: true });
+    });
+}
+
+
 julkaiseKarttaNappi.addEventListener("click", async function () {
 
     const valinta = document.getElementById("suunnitelmaValinta");
     const suunnitelmanNimi = valinta.value;
 
-    // Tarkistetaan, että suunnitelma on valittu
     if (!suunnitelmanNimi) {
         alert("Valitse ensin julkaistava suunnitelma.");
         return;
     }
 
-    // Varmistetaan käyttäjän valinta
     const vahvistus = confirm(
         "Haluatko julkaista suunnitelman '" + suunnitelmanNimi +
         "'?\n\nJulkaisu korvaa aiemmin julkaistun kartan."
@@ -123,17 +148,30 @@ julkaiseKarttaNappi.addEventListener("click", async function () {
     }
 
     try {
+
+        // Pyydetään käyttäjältä julkaisukoodi
+        const publishCode = await requestPublishCode();
+
+        if (publishCode === null) {
+            return;
+        }
+
+        if (!publishCode.trim()) {
+            throw new Error("Julkaisukoodi ei voi olla tyhjä.");
+        }
+
         julkaiseKarttaNappi.disabled = true;
         julkaiseKarttaNappi.textContent = "Julkaistaan...";
 
-        // Jos julkaistava suunnitelma on aktiivinen,
-        // viimeistellään sen odottavat automaattitallennukset.
         if (suunnitelmanNimi === currentPlanName) {
             await finishAutosaveBeforeClose();
         }
 
-        // Käynnistetään PowerShell-julkaisu
-        const tulos = await window.planStorage.publishPlan(suunnitelmanNimi);
+        // Lähetetään suunnitelman nimi ja julkaisukoodi pääprosessille
+        const tulos = await window.planStorage.publishPlan(
+            suunnitelmanNimi,
+            publishCode
+        );
 
         if (!tulos.success) {
             throw new Error(tulos.message || "Julkaisu epäonnistui.");
@@ -147,6 +185,7 @@ julkaiseKarttaNappi.addEventListener("click", async function () {
         );
 
     } catch (error) {
+
         console.error("Kartanjulkaisu epäonnistui:", error);
 
         alert(
@@ -155,8 +194,10 @@ julkaiseKarttaNappi.addEventListener("click", async function () {
         );
 
     } finally {
+
         julkaiseKarttaNappi.disabled = false;
         julkaiseKarttaNappi.textContent = "Julkaise kartta";
+
     }
 });
 

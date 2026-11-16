@@ -3,6 +3,9 @@ const path = require("path");
 const fs = require("fs/promises");
 const { spawn } = require("child_process");
 
+// Cloudflare Worker -julkaisupalvelun osoite
+const workerUrl = "https://kartta-julkaisupalvelu.tuikkamatias.workers.dev";
+
 // Käyttäjän omien tietojen tallennussijainti
 const appDataFolder = app.getPath("userData");
 
@@ -238,89 +241,95 @@ ipcMain.handle("cancel-close", function () {
 });
 
 
-ipcMain.handle("publish-plan", async function (event, planName) {
+
+ipcMain.handle("publish-plan", async function (event, planName, publishCode) {
     try {
         // Tarkistetaan suunnitelman nimi
         const safeName = validatePlanName(planName);
 
-        // Määritetään PowerShell-skriptin polku
-        const publishScript = app.isPackaged
-            ? path.join(process.resourcesPath, "powershell", "julkaisu.ps1")
-            : path.join(__dirname, "powershell", "julkaisu.ps1");
-
-        try {
-            await fs.access(publishScript);
-            console.log("Julkaisuskripti löytyi.");
-        } catch (error) {
-            throw new Error("Julkaisuskriptiä ei löytynyt polusta: " + publishScript);
+        // Tarkistetaan julkaisukoodi
+        if (
+            typeof publishCode !== "string" ||
+            !publishCode.trim()
+        ) {
+            throw new Error("Julkaisukoodi puuttuu.");
         }
 
-        // Määritetään Windows PowerShellin polku
-        const windowsFolder = process.env.SystemRoot || "C:\\Windows";
-        const powershellPath = process.arch === "ia32"
-            ? path.join(windowsFolder, "Sysnative", "WindowsPowerShell", "v1.0", "powershell.exe")
-            : path.join(windowsFolder, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+        // Luetaan suunnitelma käyttäjän omasta AppData-kansiosta
+        const filePath = getPlanPath(safeName);
+        const jsonData = await fs.readFile(filePath, "utf8");
 
-        // Määritetään Node.js:n polku
-        const nodePath = app.isPackaged
-            ? path.join(process.resourcesPath, "runtime", "node.exe")
-            : path.join(__dirname, "runtime", "node.exe");
+        // Tarkistetaan, että tiedosto sisältää kelvollista JSON-dataa
+        let plan;
 
-        // Määritetään Wranglerin käynnistystiedoston polku
-        const wranglerPath = app.isPackaged
-            ? path.join(process.resourcesPath, "app.asar.unpacked", "node_modules", "wrangler", "bin", "wrangler.js")
-            : path.join(__dirname, "node_modules", "wrangler", "bin", "wrangler.js");
+        try {
+            plan = JSON.parse(jsonData);
+        } catch {
+            throw new Error("Suunnitelman JSON-tiedosto ei ole kelvollinen.");
+        }
 
-        // Käynnistetään PowerShell ja välitetään sille tarvittavat tiedot
-        return await new Promise(function (resolve, reject) {
-            const process = spawn(powershellPath, [
-                "-NoProfile",
-                "-ExecutionPolicy", "Bypass",
-                "-File", publishScript,
-                "-PlanName", safeName,
-                "-DataRoot", appDataFolder,
-                "-PublicViewFolder", publicViewFolder,
-                "-NodePath", nodePath,
-                "-WranglerPath", wranglerPath,
-            ], {
-                cwd: appDataFolder,
-                windowsHide: true
-            });
+        // Tarkistetaan suunnitelman perusrakenne
+        if (
+            !plan ||
+            typeof plan !== "object" ||
+            !plan.map ||
+            !plan.map.center ||
+            !Array.isArray(plan.kojut)
+        ) {
+            throw new Error("Suunnitelman tietorakenne ei kelpaa julkaistavaksi.");
+        }
 
-            let output = "";
-            let errorOutput = "";
+        // Tarkistetaan tiedoston koko
+        const fileSize = Buffer.byteLength(jsonData, "utf8");
 
-            process.stdout.on("data", function (data) {
-                output += data.toString();
-            });
+        if (fileSize > 2 * 1024 * 1024) {
+            throw new Error("Suunnitelma on liian suuri julkaistavaksi.");
+        }
 
-            process.stderr.on("data", function (data) {
-                errorOutput += data.toString();
-            });
+        // Lähetetään suunnitelma Cloudflare Workerille
+        const response = await fetch(
+            `${workerUrl}/publish`,
+            {
+                method: "POST",
 
-            process.on("error", function (error) {
-                reject(error);
-            });
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${publishCode}`
+                },
 
-            process.on("close", function (code) {
-                if (code === 0) {
-                    resolve({
-                        success: true,
-                        message: output.trim() || "Suunnitelma julkaistu."
-                    });
-                } else {
-                    reject(new Error(
-                        errorOutput.trim() || "Julkaisu epäonnistui."
-                    ));
-                }
-            });
-        });
+                body: jsonData,
+                signal: AbortSignal.timeout(30000)
+            }
+        );
+
+        // Luetaan palvelimen vastaus
+        let result;
+
+        try {
+            result = await response.json();
+        } catch {
+            throw new Error("Julkaisupalvelin palautti virheellisen vastauksen.");
+        }
+
+        // Tarkistetaan julkaisun onnistuminen
+        if (!response.ok) {
+            throw new Error(
+                result.error || `Julkaisu epäonnistui. HTTP ${response.status}`
+            );
+        }
+
+        return {
+            success: true,
+            message: result.message || "Suunnitelma julkaistiin onnistuneesti."
+        };
 
     } catch (error) {
         console.error("Julkaisuvirhe:", error);
-        throw error;
+
+        throw new Error(error.message || "Julkaisu epäonnistui.");
     }
 });
+
 
 // AVATAAN OHJEIKKUNA
 ipcMain.handle("open-help", function () {
@@ -362,7 +371,7 @@ ipcMain.handle("open-help", function () {
 ipcMain.handle("open-help-file", async function (event, fileName) {
 
     const allowedFiles = [
-        "ohjeet.docx",
+        "ohjeet.pdf",
         "qrkoodi.pdf"
     ];
 

@@ -125,6 +125,36 @@
         </form>
     </dialog>
 
+
+    <dialog id="publishCodeDialog">
+        <form method="dialog">
+            <h2>Julkaisukoodi</h2>
+
+            <p>Syötä yhteinen julkaisukoodi julkaistaksesi kartan.</p>
+
+            <label for="publishCodeInput">Julkaisukoodi:</label>
+
+            <input
+                type="password"
+                id="publishCodeInput"
+                placeholder="Syötä julkaisukoodi"
+                required
+                autocomplete="off"
+            >
+
+            <div class="dialog-buttons">
+                <button type="submit" value="publish">
+                    Jatka julkaisua
+                </button>
+
+                <button type="submit" value="cancel" formnovalidate>
+                    Peruuta
+                </button>
+            </div>
+        </form>
+    </dialog>
+
+
     <div id="map" class="mapdiv"></div>
 
     <!--leafletin js linkki-->

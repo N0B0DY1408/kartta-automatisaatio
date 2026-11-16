@@ -33,8 +33,8 @@ contextBridge.exposeInMainWorld("planStorage", {
         return ipcRenderer.invoke("cancel-close");
     },
 
-    publishPlan: function (name) {
-    return ipcRenderer.invoke("publish-plan", name);
+    publishPlan: function (name, code) {
+        return ipcRenderer.invoke("publish-plan", name, code);
     },
 
     openHelp: function () {

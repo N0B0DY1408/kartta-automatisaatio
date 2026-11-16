@@ -292,6 +292,29 @@ section h2 {
 }
 
 
+#publishCodeDialog {
+    border: none;
+    border-radius: 10px;
+    padding: 25px;
+    min-width: 320px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+}
+
+#publishCodeDialog::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+}
+
+#publishCodeDialog form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#publishCodeDialog input {
+    padding: 9px;
+    font-size: 15px;
+}
+
 
 #map {
     height: 880px;

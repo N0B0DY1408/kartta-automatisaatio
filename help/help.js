@@ -1,6 +1,6 @@
 document.getElementById("openDocx").addEventListener("click", async function () {
     try {
-        await window.planStorage.openHelpFile("ohjeet.docx");
+        await window.planStorage.openHelpFile("ohjeet.pdf");
     } catch (error) {
         alert("Käyttöohjetta ei voitu avata: " + error.message);
     }

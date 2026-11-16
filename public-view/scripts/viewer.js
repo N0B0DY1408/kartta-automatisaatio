@@ -1,7 +1,10 @@
+console.log("VIEWER.JS UUSI VERSIO 16.11.2026");
 
 let map;
 let markers = new Map();
 let stallElements = new Map();
+let lastPlanJson = null;
+let refreshInterval = null;
 
 let selectedStallNumber = null;
 
@@ -9,7 +12,12 @@ async function loadPlan() {
 
     try {
 
-        const response = await fetch("data/active-plan.json");
+        const response = await fetch(
+            "https://kartta-julkaisupalvelu.tuikkamatias.workers.dev/plan",
+            {
+                cache: "no-store"
+            }
+        );
 
         console.log("JSON-vastaus:", response.status);
         console.log("JSON-tiedoston osoite:", response.url);
@@ -23,6 +31,35 @@ async function loadPlan() {
         const plan = await response.json();
 
         console.log("Ladattu suunnitelma:", plan);
+
+        if (!plan.map || !plan.map.center || !Array.isArray(plan.kojut)) {
+            throw new Error("Suunnitelman JSON-rakenne ei ole oikeanlainen.");
+        }
+
+        // Tarkistetaan, onko suunnitelma muuttunut
+        const currentPlanJson = JSON.stringify(plan);
+
+        if (currentPlanJson === lastPlanJson) {
+            console.log("Suunnitelma ei ole muuttunut.");
+            return;
+        }
+
+        // Tallennetaan uuden suunnitelman sisältö vertailua varten
+        lastPlanJson = currentPlanJson;
+
+        // Tyhjennetään vanhat karttamerkit ja valinnat
+        markers.clear();
+        stallElements.clear();
+        selectedStallNumber = null;
+
+        // Päivitetään sivun sisältö
+        document.getElementById("eventName").textContent = plan.name;
+
+        createMap(plan);
+        createStallList(plan.kojut);
+        createParkingAreas(plan.parkit || []);
+
+        console.log("Kartta päivitettiin uudella suunnitelmalla.");
 
         if (!plan.map || !plan.map.center || !Array.isArray(plan.kojut)) {
             throw new Error("Suunnitelman JSON-rakenne ei ole oikeanlainen.");
@@ -50,12 +87,25 @@ async function loadPlan() {
 
 function createMap(plan) {
 
+    // Poistetaan mahdollinen aikaisempi Leaflet-kartta
+    if (map) {
+        map.remove();
+        map = null;
+    }
+
+    const mapContainer = document.getElementById("map");
+
+    // Varmistetaan, ettei karttaelementissä ole vanhaa Leaflet-tilaa
+    if (mapContainer._leaflet_id) {
+        delete mapContainer._leaflet_id;
+    }
+
     const center = [
         plan.map.center.lat,
         plan.map.center.lng
     ];
 
-    map = L.map("map").setView(center, plan.map.zoom);
+    map = L.map(mapContainer).setView(center, plan.map.zoom);
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
@@ -252,7 +302,13 @@ function escapeHTML(value) {
     });
 }
 
+// Ladataan suunnitelma heti sivun avautuessa
 loadPlan();
+
+// Tarkistetaan uudet julkaisut 30 sekunnin välein
+refreshInterval = setInterval(function () {
+    loadPlan();
+}, 30000);
 
 
 const searchInput = document.getElementById("haku");
