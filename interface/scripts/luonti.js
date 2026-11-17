@@ -1,7 +1,11 @@
 
 function createKoju(number, name, coordinates) {
 
-    const marker = L.marker(coordinates).addTo(map);
+    const marker = L.marker(coordinates);
+
+    if (naytaKojutKartalla) {
+        marker.addTo(map);
+    }
 
     const popupContent = document.createElement("div");
 
@@ -168,9 +172,15 @@ function luoparkki(number, name, entrance, exit, layer = null, corners = null) {
     };
 
     if (!layer) {
-        layer = L.polygon(corners, parkingStyle).addTo(map);
+        layer = L.polygon(corners, parkingStyle);
     } else {
         layer.setStyle(parkingStyle);
+    }
+
+    if (naytaParkitKartalla) {
+        layer.addTo(map);
+    } else {
+        map.removeLayer(layer);
     }
 
     if (layer.pm) {
@@ -356,4 +366,132 @@ function luoparkki(number, name, entrance, exit, layer = null, corners = null) {
     console.log("Pysäköintialue lisätty:", areaData);
 
     return areaData;
+}
+
+
+function luoAlue(id, kirjain, vari, koordinaatit, layer = null) {
+
+    if (!layer) {
+        layer = L.polygon(koordinaatit);
+    }
+
+    layer.setStyle({
+        color: vari,
+        fillColor: vari,
+        fillOpacity: 0.2,
+        weight: 2
+    });
+
+    const alueData = {
+        id: id,
+        kirjain: kirjain,
+        vari: vari,
+        koordinaatit: koordinaatit,
+        layer: layer,
+        element: null
+    };
+
+    // Lisätään alue kartalle, jos alueiden näkymä on käytössä.
+    if (naytaAlueetKartalla) {
+        layer.addTo(map);
+    }
+
+    alueet.set(id, alueData);
+
+    // Luodaan alueelle oma elementti sivupaneeliin.
+    const alueDiv = document.createElement("div");
+    alueDiv.className = "alue";
+
+    alueData.element = alueDiv;
+
+    const otsikko = document.createElement("h3");
+    otsikko.textContent = `Alue ${kirjain}`;
+
+    const variTieto = document.createElement("p");
+    variTieto.textContent = `Väri: ${vari}`;
+
+    
+    const variNayte = document.createElement("button");
+    variNayte.className = "alueVariNayte";
+    variNayte.type = "button";
+    variNayte.title = "Vaihda alueen väri";
+    
+
+    variNayte.style.backgroundColor = vari;
+
+    const variValitsin = document.createElement("input");
+    variValitsin.type = "color";
+    variValitsin.value = vari;
+    variValitsin.style.display = "none";
+
+    // Avataan värivalitsin värinäytettä painamalla.
+    variNayte.addEventListener("click", function () {
+        variValitsin.click();
+    });
+
+    // Päivitetään alueen väri valinnan jälkeen.
+    variValitsin.addEventListener("input", function () {
+
+        const uusiVari = variValitsin.value;
+
+        // Päivitetään alueen tiedot.
+        alueData.vari = uusiVari;
+
+        // Päivitetään karttapolygonin väri.
+        layer.setStyle({
+            color: uusiVari,
+            fillColor: uusiVari
+        });
+
+        // Päivitetään sivupaneelin värinäyte.
+        variNayte.style.backgroundColor = uusiVari;
+
+        // Päivitetään värin tekstimuotoinen tieto.
+        variTieto.textContent = `Väri: ${uusiVari}`;
+
+        scheduleAutosave();
+    });
+
+
+    const poistaButton = document.createElement("button");
+    poistaButton.textContent = "Poista alue";
+
+    poistaButton.addEventListener("click", function () {
+
+        // Lopetetaan alueiden piirtäminen ennen poistamista.
+        if (alueidenPiirtoKaynnissa) {
+            vaihdaAlueidenPiirtotila();
+        }
+
+        map.removeLayer(layer);
+
+        alueDiv.remove();
+
+        alueet.delete(id);
+
+        scheduleAutosave();
+    });
+
+    alueDiv.append(
+        otsikko,
+        variTieto,
+        variNayte,
+        variValitsin,
+        poistaButton
+    );
+
+    document.getElementById("alueLista").appendChild(alueDiv);
+
+    // Alueen korostaminen kartalla sivupaneelin kautta.
+    alueDiv.addEventListener("mouseenter", function () {
+        layer.openPopup();
+    });
+
+    alueDiv.addEventListener("mouseleave", function () {
+        layer.closePopup();
+    });
+
+    scheduleAutosave();
+
+    return alueData;
 }

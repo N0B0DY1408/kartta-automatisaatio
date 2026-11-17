@@ -23,6 +23,8 @@
 
     <header>
         <h1>tereve</h1>
+
+        <button id="avaaOhjeet">Ohjeet ja QR-koodi</button>
     </header>
 
     <nav>
@@ -46,29 +48,62 @@
             Myyntikojuja: <span id="kojuCount">0</span>
         </div>
 
-        <h4>pelkkä kartta: </h3>
+        <h4 id="nakymaTeksti">Tavallinen kartta</h4>
 
         <label id="switch">
-            <input type="checkbox">
+            <input type="checkbox" id="nakymaSwitch">
             <span class="slider round"></span>
         </label>
-
-        <button id="avaaOhjeet">Ohjeet ja QR-koodi</button>
 
         <div id="saveStatus">Saved</div>
     </nav>
 
     <div id="sivupaneeli">
 
-        <input type="text" placeholder="Hae..." id="haku">
+        <!-- Tavallinen karttanäkymä -->
+        <div id="tavallinenNakyma">
 
-        <section id="markers">
-            <h2>Kojujen hallinta</h2>
-        </section>
+            <input type="text" placeholder="Hae..." id="haku">
 
-        <section id="parkit">
-            <h2>Parkkipaikkojen hallinta</h2>
-        </section>
+            <section id="markers">
+                <h2>Kojujen hallinta</h2>
+            </section>
+
+            <section id="parkit">
+                <h2>Parkkipaikkojen hallinta</h2>
+            </section>
+
+        </div>
+
+
+        <!-- Alueiden suunnittelunäkymä -->
+        <div id="alueNakyma" style="display: none;">
+
+            <h2>Alueiden hallinta</h2>
+
+            <button id="alueidenPiirto">Piirrä alueita</button>
+
+            <hr>
+
+            <h3>Kartan näkyvyys</h3>
+
+            <label>
+                <input type="checkbox" id="naytaKojut" checked>
+                Näytä kojut
+            </label>
+
+            <label>
+                <input type="checkbox" id="naytaParkit" checked>
+                Näytä parkkipaikat
+            </label>
+
+            <hr>
+
+            <section id="alueLista">
+                <h3>Suunnitellut alueet</h3>
+            </section>
+
+        </div>
 
     </div>
 

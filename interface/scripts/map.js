@@ -14,6 +14,11 @@ map.on("zoomend", function () {
     scheduleAutosave();
 });
 
+// Karttatasojen näkyvyysasetukset
+let naytaAlueetKartalla = false;
+let naytaKojutKartalla = true;
+let naytaParkitKartalla = true;
+
 // Lisätään Geomanin piirtotyökalut kartalle
 map.pm.addControls({
     position: "topleft",
@@ -33,6 +38,45 @@ map.pm.addControls({
     cutPolygon: false,
     rotateMode: true
 });
+
+// Lopettaa alueiden piirtämisen
+function lopetaAlueidenPiirtotila() {
+
+    if (!alueidenPiirtoKaynnissa) {
+        return;
+    }
+
+    map.pm.disableDraw();
+
+    alueidenPiirtoKaynnissa = false;
+
+    console.log("Alueiden piirtotila pois käytöstä");
+}
+
+
+// Vaihtaa alueiden piirtotilan päälle tai pois
+function vaihdaAlueidenPiirtotila() {
+
+    if (alueidenPiirtoKaynnissa) {
+
+        lopetaAlueidenPiirtotila();
+
+    } else {
+
+        // Poistetaan muut mahdolliset piirtotyökalut käytöstä.
+        map.pm.disableDraw();
+
+        // Aktivoidaan alueiden piirtäminen.
+        map.pm.enableDraw("Polygon", {
+            snappable: true,
+            continueDrawing: true
+        });
+
+        alueidenPiirtoKaynnissa = true;
+
+        console.log("Alueiden piirtotila käytössä");
+    }
+}
 
 //tehdään kartalle markkerereita joita käyttäjä voi lisätä klikkaamalla karttaa
 const markersSection = document.getElementById("markers");
@@ -99,22 +143,108 @@ let parkingCounter = 1;
 const parkit = new Map();
 
 
-// Kun käyttäjä piirtää uuden suorakulmion
+// Kun käyttäjä piirtää uuden muodon
 map.on("pm:create", function (event) {
 
-    const rectangle = event.layer;
+    const layer = event.layer;
 
+    // Jos alueiden piirtotila on päällä,
+    // käsitellään piirretty muoto alueena.
+   if (alueidenPiirtoKaynnissa) {
+
+        // Etsitään seuraava vapaa alueen tunniste.
+        while (alueet.has(`alue-${alueCounter}`)) {
+            alueCounter++;
+        }
+
+        const kirjain = String.fromCharCode(64 + alueCounter);
+        const id = `alue-${alueCounter}`;
+
+        const koordinaatit = layer.getLatLngs()[0];
+
+        luoAlue(
+            id,
+            kirjain,
+            "#2878C8",
+            koordinaatit,
+            layer
+        );
+
+        alueCounter++;
+
+        return;
+    }
+
+    // Muussa tapauksessa käsitellään se pysäköintialueena.
     luoparkki(
         parkingCounter,
         `Pysäköintialue #${parkingCounter}`,
         "",
         "",
-        rectangle
+        layer
     );
 
     parkingCounter++;
 
 });
+
+const alueet = new Map();
+
+let alueidenPiirtoKaynnissa = false;
+let alueCounter = 1;
+
+// Alueiden näyttäminen ja piilottaminen
+function naytaAlueet(nakyvissa) {
+
+    naytaAlueetKartalla = nakyvissa;
+
+    alueet.forEach(function (alue) {
+
+        if (nakyvissa) {
+            alue.layer.addTo(map);
+        } else {
+            map.removeLayer(alue.layer);
+        }
+
+    });
+
+}
+
+
+// Kojupisteiden näyttäminen ja piilottaminen
+function naytaKojut(nakyvissa) {
+
+    naytaKojutKartalla = nakyvissa;
+
+    kojut.forEach(function (koju) {
+
+        if (nakyvissa) {
+            koju.marker.addTo(map);
+        } else {
+            map.removeLayer(koju.marker);
+        }
+
+    });
+
+}
+
+
+// Parkkipaikkojen näyttäminen ja piilottaminen
+function naytaParkit(nakyvissa) {
+
+    naytaParkitKartalla = nakyvissa;
+
+    parkit.forEach(function (parkki) {
+
+        if (nakyvissa) {
+            parkki.layer.addTo(map);
+        } else {
+            map.removeLayer(parkki.layer);
+        }
+
+    });
+
+} 
 
 
 map.on("pm:drawstart", function () {

@@ -9,6 +9,11 @@ body {
 header {
     padding: 10px;
     font-size: 25px;
+    display: flex;
+}
+
+#avaaOhjeet {
+    margin: 5px;
 }
 
 h1 {
@@ -23,7 +28,7 @@ nav {
     padding-top: 0px;
 }
 
-#tallenna, #Tuo, #uusiSuunnitelma, #avaaSuunnitelma, #suunnitelmaValinta, #julkaiseKartta, #avaaOhjeet{
+#tallenna, #Tuo, #uusiSuunnitelma, #avaaSuunnitelma, #suunnitelmaValinta, #julkaiseKartta{
     margin: 10px;
     text-align: center;
     text-decoration: none;
@@ -189,6 +194,7 @@ section h2 {
     padding: 10px;
     float: left;
     height: auto;
+    max-height: 600px;
     width: 300px;
     margin-bottom: 10px;
     overflow: scroll;
@@ -222,13 +228,14 @@ section h2 {
     display: none;
 }
 
-#parkit {
+#parkit, #alueLista {
     display: grid repeat(3, 1fr);
     grid-template-columns: auto auto auto;
     background-color: dodgerblue;
     padding: 10px;
     float: left;
     height: auto;
+    overflow: scroll;
     width: 300px;
 }
 
@@ -258,6 +265,28 @@ section h2 {
 
 .parkit button[hidden] {
     display: none;
+}
+
+.alue {
+    background-color: #ffffff;
+    border: 1px solid black;
+    padding: 5px;
+    font-size: 20px;
+    text-align: center;
+    align-items: center;
+}
+
+.alue p {
+    font-size: 15px;
+}
+ 
+.alueVariNayte {
+    width: 28px;
+    height: 28px;
+    border: 2px solid #555;
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 0;
 }
 
 
