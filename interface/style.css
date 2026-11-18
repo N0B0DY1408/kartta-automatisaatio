@@ -1,3 +1,8 @@
+
+/* =================================
+   YLEISET TYYLIT
+================================= */
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -7,13 +12,9 @@ body {
 }
 
 header {
+    display: flex;
     padding: 10px;
     font-size: 25px;
-    display: flex;
-}
-
-#avaaOhjeet {
-    margin: 5px;
 }
 
 h1 {
@@ -21,29 +22,51 @@ h1 {
     margin: 0;
 }
 
-nav {
-    display: flex;
-    align-items: left;
+h4 {
+    font-size: 15px;
     padding: 10px;
-    padding-top: 0px;
+    margin: 0;
 }
 
-#tallenna, #Tuo, #uusiSuunnitelma, #avaaSuunnitelma, #suunnitelmaValinta, #julkaiseKartta{
-    margin: 10px;
+nav {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    padding-top: 0;
+}
+
+#avaaOhjeet {
+    margin: 5px;
+}
+
+
+/* =================================
+   YLÄVALIKON PAINIKKEET
+================================= */
+
+#tallenna,
+#Tuo,
+#uusiSuunnitelma,
+#avaaSuunnitelma,
+#suunnitelmaValinta,
+#julkaiseKartta {
+    margin: 4px 2px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
-    margin: 4px 2px;
     cursor: pointer;
 }
 
-#tallenna:hover, #uusiSuunnitelma:hover {
+#tallenna:hover,
+#uusiSuunnitelma:hover {
     background-color: #35b929;
     color: white;
 }
 
-#Tuo:hover, #avaaSuunnitelma:hover, #julkaiseKartta:hover {
+#Tuo:hover,
+#avaaSuunnitelma:hover,
+#julkaiseKartta:hover {
     background-color: #b9b629;
     color: white;
 }
@@ -52,6 +75,11 @@ nav {
     background-color: #2980b9;
     color: white;
 }
+
+
+/* =================================
+   KOJULASKURI JA TALLENNUKSEN TILA
+================================= */
 
 #kojuCounter {
     padding: 8px 14px;
@@ -72,7 +100,6 @@ nav {
     font-weight: bold;
     padding: 5px 10px;
     color: #555;
-    float: right;
     margin-left: auto;
 }
 
@@ -88,227 +115,499 @@ nav {
     color: #c53030;
 }
 
-h4 {
-    font-size: 15px;
-    padding: 10px;
-    margin: 0;
-}
+
+/* =================================
+   KARTAN NÄKYVYYDEN KYTKIN
+================================= */
 
 #switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
 }
 
-/* Hide default HTML checkbox */
 #switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
+    opacity: 0;
+    width: 0;
+    height: 0;
 }
 
-/* The slider */
 .slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
 }
 
 .slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
 }
 
 input:checked + .slider {
-  background-color: #2196F3;
+    background-color: #2196F3;
 }
 
 input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
+    box-shadow: 0 0 1px #2196F3;
 }
 
 input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
+    transform: translateX(26px);
 }
 
-/* Rounded sliders */
 .slider.round {
-  border-radius: 34px;
+    border-radius: 34px;
 }
 
 .slider.round:before {
-  border-radius: 50%;
+    border-radius: 50%;
+}
+
+
+/* =================================
+   KOKO SOVELLUKSEN LAYOUT
+================================= */
+
+#workspace {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+#map {
+    width: 100%;
+    height: 65vh;
+    min-height: 450px;
+    box-sizing: border-box;
 }
 
 #sivupaneeli {
-    display: flex;
-    flex-direction: column;
-    width: 340px;
-    height: 100%;
-    float: left;
-    max-height: 880px;
-    overflow: hidden;
-    list-style-type: none;
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    box-sizing: border-box;
+    padding: 16px;
+    background-color: #f1f4f8;
+    overflow: visible;
 }
 
-#sivupaneeli input[type=text] {
-  float: left;
-  padding: 6px;
-  border-style: solid;
-  border-radius: 5px;
-  font-size: 17px;
-  margin-bottom: 5px;
-  max-width: 300px;
-  min-width: 300px;
-}
 
-section {
-    padding-bottom: 5px;
-    padding-top: 5px;
-}
+/* =================================
+   TAVALLINEN KARTTANÄKYMÄ
+================================= */
 
-section h2 {
-    margin-top: 5px;
+#tavallinenNakyma {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(280px, auto);
+    justify-content: start;
+    align-items: start;
+    gap: 16px;
 }
 
 #markers {
-    display: grid repeat(3, 1fr);
-    grid-template-columns: auto auto auto;
-    background-color: dodgerblue;
+    grid-column: 1;
+}
+
+#parkit {
+    grid-column: 2;
+    width: fit-content;
+    max-width: 100%;
+}
+
+#haku {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    font-size: 17px;
+    margin-bottom: 5px;
+}
+
+
+/* =================================
+   KOJUJEN JA PARKKIPAIKKOJEN PANEELIT
+================================= */
+
+#markers,
+#parkit {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    max-height: none;
+    overflow: visible;
+    background-color: #ffffff;
+    border: 1px solid #dce3eb;
+    border-radius: 10px;
+    padding: 14px;
+    margin: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+#markers h2,
+#parkit h2 {
+    margin: 0 0 12px 0;
+    padding: 4px 0 10px 0;
+    font-size: 19px;
+    color: #26364a;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Parkkipaikkojen paneeli */
+
+#parkit {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: fit-content;
+    max-width: 100%;
+    justify-self: start;
+}
+
+#parkit > div {
+    width: auto;
+    max-width: 100%;
+    box-sizing: border-box;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+#parkit > div h3 {
+    font-size: 15px;
+}
+
+
+/* =================================
+   KOJUJEN ALUEKOHTAISET RYHMÄT
+================================= */
+
+#kojuAlueRyhmaContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+    align-items: start;
+}
+
+.kojuAlueRyhmä,
+#alueettomatKojutRyhma {
+    margin-bottom: 8px;
+    border: 1px solid #dce3eb;
+    border-radius: 7px;
+    overflow: hidden;
+    background-color: #f8fafc;
+}
+
+.kojuAlueRyhmä summary,
+#alueettomatKojutRyhma summary {
     padding: 10px;
-    float: left;
-    height: auto;
-    max-height: 600px;
-    width: 300px;
-    margin-bottom: 10px;
-    overflow: scroll;
+    font-size: 14px;
+    font-weight: bold;
+    color: #334155;
+    cursor: pointer;
+    background-color: #e9eff6;
+}
+
+.kojuAlueRyhmä summary:hover,
+#alueettomatKojutRyhma summary:hover {
+    background-color: #dce7f3;
+}
+
+.kojuAlueRyhmä[open] {
+    grid-column: span 2;
+}
+
+#alueettomatKojutRyhma {
+    margin-top: 10px;
+}
+
+
+/* =================================
+   KOJUKORTIT
+================================= */
+
+.kojuAlueLista,
+#alueettomatKojutLista {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 7px;
+    padding: 8px;
+    align-items: start;
 }
 
 .koju {
-  background-color: #ffffff;
-  border: 1px solid black;
-  padding: 5px;
-  font-size: 10px;
-  text-align: center;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    background-color: #ffffff;
+    border: 1px solid #dce3eb;
+    border-radius: 6px;
+    padding: 6px;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+    transition: background-color 0.2s, border-color 0.2s;
 }
 
 .koju:hover {
-    background-color: #949494;
-    border-color: #2980b9;
+    background-color: #f0f6ff;
+    border-color: #7aa7dc;
 }
 
 .koju.koju-highlight {
-    background-color: #949494;
-    border-color: #2980b9;
+    background-color: #e5f0ff;
+    border-color: #3182ce;
+}
+
+.koju h3 {
+    font-size: 15px;
+    margin: 2px 0 4px 0;
+}
+
+.koju p {
+    font-size: 13px;
+    margin: 3px 0;
 }
 
 .koju button {
-    margin-right: 5px;
-    margin-top: 5px;
+    padding: 3px 8px;
+    margin: 3px 2px 0 2px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    background-color: #f8fafc;
+    color: #334155;
+    font-size: 11px;
     cursor: pointer;
+}
+
+.koju button:hover {
+    background-color: #3182ce;
+    border-color: #3182ce;
+    color: white;
 }
 
 .koju button[hidden] {
     display: none;
 }
 
-#parkit, #alueLista {
-    display: grid repeat(3, 1fr);
-    grid-template-columns: auto auto auto;
-    background-color: dodgerblue;
-    padding: 10px;
-    float: left;
-    height: auto;
-    overflow: scroll;
-    width: 300px;
-}
+
+/* =================================
+   PARKKIPAIKKOJEN KORTIT
+================================= */
 
 .parkit {
-  background-color: #ffffff;
-  border: 1px solid black;
-  padding: 5px;
-  font-size: 10px;
-  text-align: center;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    border: 1px solid #dce3eb;
+    border-radius: 7px;
+    padding: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+    transition: background-color 0.2s, border-color 0.2s;
 }
 
 .parkit:hover {
-    background-color: #949494;
-    border-color: #2980b9;
+    background-color: #f0f6ff;
+    border-color: #7aa7dc;
 }
 
 .parkit.parkit-highlight {
-    background-color: #949494;
-    border-color: #2980b9;
+    background-color: #e5f0ff;
+    border-color: #3182ce;
 }
 
 .parkit button {
-    margin-right: 5px;
-    margin-top: 5px;
+    padding: 3px 8px;
+    margin: 3px 2px 0 2px;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    background-color: #f8fafc;
+    color: #334155;
+    font-size: 11px;
     cursor: pointer;
+}
+
+.parkit button:hover {
+    background-color: #3182ce;
+    border-color: #3182ce;
+    color: white;
 }
 
 .parkit button[hidden] {
     display: none;
 }
 
-.alue {
-    background-color: #ffffff;
-    border: 1px solid black;
-    padding: 5px;
-    font-size: 20px;
-    text-align: center;
+
+/* =================================
+   ALUEIDEN HALLINTANÄKYMÄ
+================================= */
+
+#alueNakyma {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 18px;
+    background-color: #f1f4f8;
+}
+
+#alueNakyma > h2 {
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    font-size: 22px;
+    color: #26364a;
+    border-bottom: 1px solid #dce3eb;
+}
+
+#alueNakyma h3 {
+    color: #334155;
+    font-size: 17px;
+    margin: 12px 0;
+}
+
+#alueidenPiirto {
+    padding: 9px 16px;
+    border: 1px solid #2878bd;
+    border-radius: 7px;
+    background-color: #3182ce;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+#alueidenPiirto:hover {
+    background-color: #2563a5;
+}
+
+#alueNakyma hr {
+    border: none;
+    border-top: 1px solid #dce3eb;
+    margin: 16px 0;
+}
+
+#alueNakyma label {
+    display: inline-flex;
     align-items: center;
+    gap: 7px;
+    margin: 4px 16px 4px 0;
+    color: #334155;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+#alueNakyma input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #3182ce;
+    cursor: pointer;
+}
+
+/* Suunniteltujen alueiden paneeli */
+
+#alueLista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    align-items: start;
+    box-sizing: border-box;
+    width: 100%;
+    max-height: none;
+    padding: 14px;
+    margin: 0;
+    float: none;
+    overflow: visible;
+    background-color: #ffffff;
+    border: 1px solid #dce3eb;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+#alueLista > h3 {
+    grid-column: 1 / -1;
+    margin: 0 0 4px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Yksittäiset aluekortit */
+
+.alue {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dce3eb;
+    border-radius: 8px;
+    background-color: #f8fafc;
+    color: #334155;
+    font-size: 15px;
+    text-align: left;
 }
 
 .alue p {
-    font-size: 15px;
+    font-size: 14px;
+    margin: 7px 0;
 }
- 
+
 .alueVariNayte {
-    width: 28px;
-    height: 28px;
-    border: 2px solid #555;
-    border-radius: 5px;
+    width: 30px;
+    height: 30px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
     cursor: pointer;
     padding: 0;
 }
 
 
-#kojuDialog {
+/* =================================
+   DIALOGIT
+================================= */
+
+#kojuDialog,
+#publishCodeDialog {
     border: none;
     border-radius: 10px;
     padding: 25px;
-    min-width: 280px;
     box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
 }
 
-#kojuDialog::backdrop {
+#kojuDialog {
+    min-width: 280px;
+}
+
+#publishCodeDialog {
+    min-width: 320px;
+}
+
+#kojuDialog::backdrop,
+#publishCodeDialog::backdrop {
     background: rgba(0, 0, 0, 0.45);
 }
 
-#kojuDialog form {
+#kojuDialog form,
+#publishCodeDialog form {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-#kojuDialog input {
+#kojuDialog input,
+#publishCodeDialog input {
     padding: 9px;
     font-size: 15px;
 }
@@ -321,32 +620,31 @@ section h2 {
 }
 
 
-#publishCodeDialog {
-    border: none;
-    border-radius: 10px;
-    padding: 25px;
-    min-width: 320px;
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+/* =================================
+   PIENEMMÄT NÄYTÖT
+================================= */
+
+@media (max-width: 800px) {
+    #tavallinenNakyma {
+        grid-template-columns: 1fr;
+    }
+
+    #haku {
+        grid-column: 1;
+    }
+
+    #map {
+        height: 55vh;
+        min-height: 350px;
+    }
 }
 
-#publishCodeDialog::backdrop {
-    background: rgba(0, 0, 0, 0.45);
-}
+@media (max-width: 600px) {
+    .kojuAlueRyhmä[open] {
+        grid-column: span 1;
+    }
 
-#publishCodeDialog form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-#publishCodeDialog input {
-    padding: 9px;
-    font-size: 15px;
-}
-
-
-#map {
-    height: 880px;
-    width: 1550px;
-    float: right;
+    #alueNakyma {
+        padding: 12px;
+    }
 }

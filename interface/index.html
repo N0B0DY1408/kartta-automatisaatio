@@ -58,6 +58,13 @@
         <div id="saveStatus">Saved</div>
     </nav>
 
+    
+<div id="workspace">
+
+    <!-- Kartta -->
+    <div id="map" class="mapdiv"></div>
+
+    <!-- Hallintapaneelit -->
     <div id="sivupaneeli">
 
         <!-- Tavallinen karttanäkymä -->
@@ -67,6 +74,13 @@
 
             <section id="markers">
                 <h2>Kojujen hallinta</h2>
+
+                <div id="kojuAlueRyhmaContainer"></div>
+
+                <details id="alueettomatKojutRyhma" open>
+                    <summary>Ei aluetta</summary>
+                    <div id="alueettomatKojutLista"></div>
+                </details>
             </section>
 
             <section id="parkit">
@@ -74,7 +88,6 @@
             </section>
 
         </div>
-
 
         <!-- Alueiden suunnittelunäkymä -->
         <div id="alueNakyma" style="display: none;">
@@ -106,6 +119,9 @@
         </div>
 
     </div>
+
+</div>
+
 
     
     <dialog id="savePlanDialog">
@@ -188,9 +204,6 @@
             </div>
         </form>
     </dialog>
-
-
-    <div id="map" class="mapdiv"></div>
 
     <!--leafletin js linkki-->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"

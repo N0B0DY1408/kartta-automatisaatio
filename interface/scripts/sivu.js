@@ -59,26 +59,45 @@ naytaParkitKytkin.addEventListener("change", function () {
     naytaParkit(naytaParkitKytkin.checked);
 });
 
+
 const searchInput = document.getElementById("haku");
 
 searchInput.addEventListener("input", function () {
 
     const searchValue = this.value.toLowerCase().trim();
-    const joo = document.querySelectorAll(".koju");
+    const kojut = document.querySelectorAll(".koju");
 
-    joo.forEach(joo => {
-        const number = joo.querySelector("p").textContent.toLowerCase();
-        const title = joo.querySelector("h3").textContent.toLowerCase();
+    kojut.forEach(koju => {
+        const number = koju.querySelector("p").textContent.toLowerCase();
+        const title = koju.querySelector("h3").textContent.toLowerCase();
 
         const searchText = number + " " + title;
 
         if (searchText.includes(searchValue)) {
-            joo.style.display = "";
+            koju.style.display = "";
         } else {
-            joo.style.display = "none";
+            koju.style.display = "none";
+        }
+    });
+
+    // Avataan tai suljetaan kojuryhmät hakutulosten perusteella.
+    const ryhmat = document.querySelectorAll(
+        "#kojuAlueRyhmaContainer details, #alueettomatKojutRyhma"
+    );
+
+    ryhmat.forEach(ryhma => {
+        const loytyyTuloksia = Array.from(
+            ryhma.querySelectorAll(".koju")
+        ).some(koju => koju.style.display !== "none");
+
+        if (searchValue === "") {
+            ryhma.open = true;
+        } else {
+            ryhma.open = loytyyTuloksia;
         }
     });
 });
+
 
 const ohjeetButton = document.getElementById("avaaOhjeet");
 

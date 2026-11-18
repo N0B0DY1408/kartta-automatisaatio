@@ -239,6 +239,8 @@ function clearCurrentPlan() {
 
     alueet.clear();
 
+    document.getElementById("kojuAlueRyhmaContainer").innerHTML = "";
+
     kojut.clear();
     parkit.clear();
 
@@ -471,6 +473,7 @@ function validatePlanData(plan) {
 
     return true;
 }
+
 function kysyTallennusNimi(oletusNimi = currentPlanName) {
     return new Promise(function (resolve) {
         const dialog = document.getElementById("savePlanDialog");
@@ -491,6 +494,7 @@ function kysyTallennusNimi(oletusNimi = currentPlanName) {
         input.focus();
     });
 }
+
 async function restorePlanFromDatabase(planName = currentPlanName) {
 
     autosavePaused = true;
@@ -586,6 +590,8 @@ async function restorePlanFromDatabase(planName = currentPlanName) {
             });
 
         }
+
+        paivitaAlueidenKojuNumerot();
 
         // Palautetaan kartan näkymä
         map.setView(
