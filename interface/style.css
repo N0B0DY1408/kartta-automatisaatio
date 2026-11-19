@@ -46,29 +46,31 @@ nav {
 
 #tallenna,
 #Tuo,
+#vie,
 #uusiSuunnitelma,
 #avaaSuunnitelma,
 #suunnitelmaValinta,
-#julkaiseKartta {
+#julkaiseKartta,
+#avaaOhjeet {
     margin: 4px 2px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
+    min-height: 30px;
     font-size: 16px;
+    color: #334155;
     cursor: pointer;
+    background-color: #e9eff6;
 }
 
 #tallenna:hover,
-#uusiSuunnitelma:hover {
-    background-color: #35b929;
-    color: white;
-}
-
 #Tuo:hover,
+#vie:hover,
+#uusiSuunnitelma:hover,
 #avaaSuunnitelma:hover,
+#suunnitelmaValinta:hover,
 #julkaiseKartta:hover {
-    background-color: #b9b629;
-    color: white;
+    background-color: #dce7f3;
 }
 
 #avaaOhjeet:hover {
@@ -194,7 +196,8 @@ input:checked + .slider:before {
 }
 
 #sivupaneeli {
-    display: block;
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(auto, auto);
     width: 100%;
     height: auto;
     max-height: none;
@@ -225,6 +228,10 @@ input:checked + .slider:before {
     grid-column: 2;
     width: fit-content;
     max-width: 100%;
+}
+
+#parkit div {
+    align-self: center;
 }
 
 #haku {

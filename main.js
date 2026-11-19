@@ -228,6 +228,57 @@ ipcMain.handle("delete-plan", async function (event, name) {
     }
 });
 
+// VIE SUUNNITELMA JSON-TIEDOSTOKSI
+ipcMain.handle("export-plan", async function (event, planData) {
+
+    try {
+        if (
+            !planData ||
+            typeof planData !== "object" ||
+            !Array.isArray(planData.kojut) ||
+            !Array.isArray(planData.parkit)
+        ) {
+            throw new Error("Suunnitelman tiedot ovat virheelliset.");
+        }
+
+        const defaultName = validatePlanName(planData.name);
+
+        const { canceled, filePath } = await dialog.showSaveDialog(
+            mainWindow,
+            {
+                title: "Vie suunnitelma",
+                defaultPath: defaultName + ".json",
+                filters: [
+                    {
+                        name: "JSON-tiedosto",
+                        extensions: ["json"]
+                    }
+                ]
+            }
+        );
+
+        if (canceled || !filePath) {
+            return {
+                success: false,
+                canceled: true
+            };
+        }
+
+        const jsonData = JSON.stringify(planData, null, 4);
+
+        await fs.writeFile(filePath, jsonData, "utf8");
+
+        return {
+            success: true,
+            message: "Suunnitelma viety onnistuneesti."
+        };
+
+    } catch (error) {
+        console.error("Vientivirhe:", error);
+        throw error;
+    }
+});
+
 
 // SULKEMISEN VAHVISTUS
 ipcMain.handle("confirm-close", function () {

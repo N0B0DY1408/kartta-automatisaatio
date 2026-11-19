@@ -32,7 +32,7 @@ kytkin.addEventListener("change", function () {
         }
 
         // Tavallinen karttanäkymä
-        tavallinenNakyma.style.display = "block";
+        tavallinenNakyma.style.display = "";
         alueNakyma.style.display = "none";
 
         nakymaTeksti.textContent = "Tavallinen kartta";
@@ -65,22 +65,23 @@ const searchInput = document.getElementById("haku");
 searchInput.addEventListener("input", function () {
 
     const searchValue = this.value.toLowerCase().trim();
-    const kojut = document.querySelectorAll(".koju");
+    const kojuElementit = document.querySelectorAll(".koju");
 
-    kojut.forEach(koju => {
+    kojuElementit.forEach(koju => {
         const number = koju.querySelector("p").textContent.toLowerCase();
         const title = koju.querySelector("h3").textContent.toLowerCase();
 
-        const searchText = number + " " + title;
+        const kojuData = Array.from(kojut.values()).find(data =>
+            data.element === koju
+        );
 
-        if (searchText.includes(searchValue)) {
-            koju.style.display = "";
-        } else {
-            koju.style.display = "none";
-        }
+        const alueNumero = kojuData?.alueNumero?.toString() || "";
+
+        const searchText = number + " " + title + " " + alueNumero;
+
+        koju.style.display = searchText.includes(searchValue) ? "" : "none";
     });
 
-    // Avataan tai suljetaan kojuryhmät hakutulosten perusteella.
     const ryhmat = document.querySelectorAll(
         "#kojuAlueRyhmaContainer details, #alueettomatKojutRyhma"
     );
@@ -90,11 +91,7 @@ searchInput.addEventListener("input", function () {
             ryhma.querySelectorAll(".koju")
         ).some(koju => koju.style.display !== "none");
 
-        if (searchValue === "") {
-            ryhma.open = true;
-        } else {
-            ryhma.open = loytyyTuloksia;
-        }
+        ryhma.open = searchValue === "" || loytyyTuloksia;
     });
 });
 

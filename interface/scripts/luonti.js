@@ -80,9 +80,6 @@ function createKoju(number, name, coordinates) {
 
         kojuData.coordinates = newPosition;
 
-        locationDisplay.textContent =
-            `sijainti: ${newPosition.lat.toFixed(5)}, ${newPosition.lng.toFixed(5)}`;
-
         scheduleAutosave();
     }
 
@@ -178,7 +175,6 @@ function createKoju(number, name, coordinates) {
         numberDisplay,
         alueNumeroDisplay,
         nameDisplay,
-        locationDisplay,
         editButton,
         deleteButton
     );
