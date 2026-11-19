@@ -12,11 +12,16 @@ function clearCurrentPlan() {
 
     alueet.forEach(function (area) {
         map.removeLayer(area.layer);
+
+        if (area.element) {
+            area.element.remove();
+        }
     });
 
     alueet.clear();
 
     document.getElementById("kojuAlueRyhmaContainer").innerHTML = "";
+    document.getElementById("alueLista").innerHTML = "";
 
     kojut.clear();
     parkit.clear();
@@ -24,7 +29,6 @@ function clearCurrentPlan() {
     kojumäärä = 1;
     parkingCounter = 1;
 }
-
 
 async function restorePlanFromDatabase(planName = currentPlanName) {
 

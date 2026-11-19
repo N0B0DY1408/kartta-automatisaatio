@@ -227,7 +227,16 @@ function luoparkki(number, name, entrance, exit, layer = null, corners = null) {
         layer.pm.setOptions({
             allowRotation: true,
             allowEditing: true,
-            draggable: true
+            draggable: true,
+
+            // Näytetään polygonin keskellä olevat lisäyspisteet.
+            hideMiddleMarkers: false,
+
+            // Uusi kulmapiste lisätään reunaa klikkaamalla.
+            addVertexOn: "click",
+
+            // Kulmapisteen voi poistaa hiiren oikealla painikkeella.
+            removeVertexOn: "contextmenu"
         });
     }
 
