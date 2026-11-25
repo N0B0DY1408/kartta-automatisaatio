@@ -6,23 +6,42 @@ let currentPlanId = "current";
 
 function suunnitelmaData(planName) {
 
-    // Collect all vendors
-    const kojuData = Array.from(kojut.values()).map(function (vendor) {
+    // Collect all physical stall spaces
+    const kojupaikkaData = Array.from(kojupaikat.values()).map(function (paikka) {
 
-        // Get the marker's current position
-        const position = vendor.marker.getLatLng();
+        const corners = paikka.layer.getLatLngs()[0];
 
         return {
-            number: vendor.number,
-            name: vendor.name,
-            coordinates: {
-                lat: position.lat,
-                lng: position.lng
+            number: paikka.number,
+
+            center: {
+                lat: paikka.center.lat,
+                lng: paikka.center.lng
             },
-            alueId: vendor.alueId || null,
-            alueTunnus: vendor.alueTunnus || null
+
+            width: paikka.width,
+            height: paikka.height,
+            rotation: paikka.rotation,
+
+            coordinates: corners.map(function (corner) {
+                return {
+                    lat: corner.lat,
+                    lng: corner.lng
+                };
+            }),
+
+            alueId: paikka.alueId || null,
+            alueTunnus: paikka.alueTunnus || null,
+            alueNumero: paikka.alueNumero || null,
+
+            alueelleLisattyJarjestys: paikka.alueelleLisattyJarjestys ?? null,
+
+            status: paikka.status,
+            varaus: paikka.varaus || null
         };
     });
+
+    
 
     // Collect all parking areas
     const parkkiData = Array.from(parkit.values()).map(function (area) {
@@ -59,7 +78,7 @@ function suunnitelmaData(planName) {
     return {
         version: 1,
         name: planName,
-        kojut: kojuData,
+        kojupaikat: kojupaikkaData,
         parkit: parkkiData,
         alueet: Array.from(alueet.values()).map(function (area) {
 

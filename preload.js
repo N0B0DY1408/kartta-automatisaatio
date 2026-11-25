@@ -1,5 +1,11 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
+// Kehitystilan asetukset
+contextBridge.exposeInMainWorld("appSettings", {
+    getSettings: function () {
+        return ipcRenderer.invoke("get-app-settings");
+    }
+});
 contextBridge.exposeInMainWorld("planStorage", {
 
     savePlan: function (name, data) {

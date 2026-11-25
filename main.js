@@ -17,6 +17,16 @@ const backupFolder = path.join(appDataFolder, "varmuuskopiot");
 
 let mainWindow = null;
 
+// Tunnistetaan start.ps1:n kautta käynnistetty kehitystila
+const isDevInvertEnabled = process.env.KARTTA_DEV_INVERT === "1";
+
+// Välitetään kehitystilan asetukset käyttöliittymälle
+ipcMain.handle("get-app-settings", function () {
+    return {
+        isDevInvertEnabled: isDevInvertEnabled
+    };
+});
+
 let isClosing = false;
 let closeConfirmed = false;
 let closeCancelled = false;
@@ -235,7 +245,7 @@ ipcMain.handle("export-plan", async function (event, planData) {
         if (
             !planData ||
             typeof planData !== "object" ||
-            !Array.isArray(planData.kojut) ||
+            !Array.isArray(planData.kojupaikat) ||
             !Array.isArray(planData.parkit)
         ) {
             throw new Error("Suunnitelman tiedot ovat virheelliset.");

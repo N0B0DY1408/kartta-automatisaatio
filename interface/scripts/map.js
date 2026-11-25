@@ -78,63 +78,36 @@ function vaihdaAlueidenPiirtotila() {
     }
 }
 
-//tehdään kartalle markkerereita joita käyttäjä voi lisätä klikkaamalla karttaa
-const markersSection = document.getElementById("markers");
-
 let kojuPlacementEnabled = true;
 
-let kojumäärä = 1;
+let kojupaikkaMaara = 1;
+const kojupaikat = new Map();
 
-const kojut = new Map();
+let valittuKojupaikka = null;
 
-map.on("click", async function (event) {
+map.on("click", async function(event) {
 
+    // Ei luoda uutta kojupaikkaa, jos klikattiin olemassa olevaa karttakohdetta.
+    if (
+        event.originalEvent?.target?.closest(".leaflet-interactive")
+    ) {
+        return;
+    }
+
+    if (Number(kytkin.value) === 1) return;
     if (!kojuPlacementEnabled) return;
-
     if (map.pm.globalRotateModeEnabled()) return;
     if (map.pm.globalEditModeEnabled()) return;
     if (map.pm.globalDragModeEnabled()) return;
     if (map.pm.globalRemovalModeEnabled()) return;
 
-    const kojuName = await kysyKojuNimi();
+    const paikkaNumber = kojupaikkaMaara++;
 
-    if (!kojuName) return;
-
-    if (!kojuName || !kojuName.trim()) {
-        return;
-    }
-
-    const kojuNumber = kojumäärä++;
-
-    createKoju(
-        kojuNumber,
-        kojuName.trim(),
+    luoKojupaikka(
+        paikkaNumber,
         event.latlng
     );
-
 });
-
-
-function kysyKojuNimi() {
-    return new Promise(function (resolve) {
-        const dialog = document.getElementById("kojuDialog");
-        const input = document.getElementById("kojuNameInput");
-
-        input.value = "";
-
-        dialog.addEventListener("close", function () {
-            if (dialog.returnValue === "create") {
-                const name = input.value.trim();
-                resolve(name || null);
-            } else {
-                resolve(null);
-            }
-        }, { once: true });
-
-        dialog.showModal();
-        input.focus();
-    });
-}
 
 const parkingSection = document.getElementById("parkit");
 
@@ -210,24 +183,22 @@ function naytaAlueet(nakyvissa) {
 
 }
 
-
-// Kojupisteiden näyttäminen ja piilottaminen
+// Fyysisten kojupaikkojen näyttäminen ja piilottaminen.
 function naytaKojut(nakyvissa) {
 
     naytaKojutKartalla = nakyvissa;
 
-    kojut.forEach(function (koju) {
+    kojupaikat.forEach(function (paikka) {
 
         if (nakyvissa) {
-            koju.marker.addTo(map);
+            paikka.layer.addTo(map);
         } else {
-            map.removeLayer(koju.marker);
+            map.removeLayer(paikka.layer);
         }
 
     });
 
 }
-
 
 // Parkkipaikkojen näyttäminen ja piilottaminen
 function naytaParkit(nakyvissa) {

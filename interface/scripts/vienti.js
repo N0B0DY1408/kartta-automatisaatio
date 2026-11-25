@@ -7,6 +7,8 @@ vieSuunnitelmaNappi.addEventListener("click", async function () {
         // Muodostetaan aktiivisen suunnitelman tiedot
         const planData = suunnitelmaData(currentPlanName);
 
+        console.log("JSON-vientiin lähtevät tiedot:", planData);
+
         // Pyydetään Electronia viemään JSON-tiedosto
         const tulos = await window.planStorage.exportPlan(planData);
 

@@ -1,14 +1,33 @@
 function clearCurrentPlan() {
 
-    for (const koju of kojut.values()) {
-        map.removeLayer(koju.marker);
-        koju.element.remove();
-    }
-
     for (const area of parkit.values()) {
         map.removeLayer(area.layer);
         area.element.remove();
     }
+
+    // Poistetaan fyysiset kojupaikat ja niiden kokokahvat.
+    for (const paikka of kojupaikat.values()) {
+
+        map.removeLayer(paikka.layer);
+
+        if (paikka.element) {
+            paikka.element.remove();
+        }
+
+        const kahvat = kojupaikanKokokahvat.get(paikka.number);
+
+        if (kahvat) {
+            Object.values(kahvat).forEach(function (kahva) {
+                map.removeLayer(kahva);
+            });
+
+            kojupaikanKokokahvat.delete(paikka.number);
+        }
+    }
+
+    // Nollataan kojupaikan valinta ja muokkausnäkymä.
+    valittuKojupaikka = null;
+    valitunKojupaikanTiedot.style.display = "none";
 
     alueet.forEach(function (area) {
         map.removeLayer(area.layer);
@@ -23,10 +42,10 @@ function clearCurrentPlan() {
     document.getElementById("kojuAlueRyhmaContainer").innerHTML = "";
     document.getElementById("alueLista").innerHTML = "";
 
-    kojut.clear();
+    kojupaikat.clear();
     parkit.clear();
 
-    kojumäärä = 1;
+    kojupaikkaMaara = 1;
     parkingCounter = 1;
 }
 
@@ -61,7 +80,7 @@ async function restorePlanFromDatabase(planName = currentPlanName) {
         // Tarkistetaan suunnitelman perustiedot ennen kartan tyhjentämistä
         if (
             planData.version !== 1 ||
-            !Array.isArray(planData.kojut) ||
+            !Array.isArray(planData.kojupaikat) ||
             !Array.isArray(planData.parkit) ||
             !planData.map ||
             !planData.map.center ||
@@ -78,26 +97,6 @@ async function restorePlanFromDatabase(planName = currentPlanName) {
         currentPlanId = currentPlanName;
 
         localStorage.setItem("viimeksiAktiivinenSuunnitelma", currentPlanName);
-
-        // Palautetaan kojut kartalle
-        planData.kojut.forEach(function (koju) {
-
-            const position = L.latLng(
-                koju.coordinates.lat,
-                koju.coordinates.lng
-            );
-
-            createKoju(koju.number, koju.name, position);
-
-            const palautettuKoju = kojut.get(koju.number);
-
-            if (palautettuKoju) {
-                palautettuKoju.alueId = koju.alueId || null;
-                palautettuKoju.alueTunnus = koju.alueTunnus || null;
-            }
-
-            kojumäärä = Math.max(kojumäärä, koju.number + 1);
-        });
 
         // Palautetaan parkkialueet kartalle
         planData.parkit.forEach(function (area) {
@@ -139,7 +138,31 @@ async function restorePlanFromDatabase(planName = currentPlanName) {
             });
         }
 
-        paivitaAlueidenKojuNumerot();
+        // Palautetaan fyysiset kojupaikat kartalle.
+        if (Array.isArray(planData.kojupaikat)) {
+
+            planData.kojupaikat.forEach(function (paikka) {
+
+                const keskipiste = L.latLng(
+                    paikka.center.lat,
+                    paikka.center.lng
+                );
+
+                luoKojupaikka(
+                    paikka.number,
+                    keskipiste,
+                    paikka
+                );
+
+                kojupaikkaMaara = Math.max(
+                    kojupaikkaMaara,
+                    paikka.number + 1
+                );
+
+            });
+        }
+
+        paivitaAlueidenKojupaikkaNumerot();
 
         // Palautetaan kartan näkymä
         map.setView(

@@ -56,8 +56,23 @@ if (-not (Test-Path $ElectronPath)) {
 
 Write-Host "Kaynnistetaan Kartta-automaatio..." -ForegroundColor Cyan
 
-npm start
+# Kehitystilassa käytettävä värien kääntö
+$PreviousDevInvert = $env:KARTTA_DEV_INVERT
+$env:KARTTA_DEV_INVERT = "1"
 
-if ($LASTEXITCODE -ne 0) {
+try {
+    npm start
+    $NpmExitCode = $LASTEXITCODE
+}
+finally {
+    # Palautetaan ympäristömuuttuja ennalleen
+    if ($null -eq $PreviousDevInvert) {
+        Remove-Item Env:KARTTA_DEV_INVERT -ErrorAction SilentlyContinue
+    } else {
+        $env:KARTTA_DEV_INVERT = $PreviousDevInvert
+    }
+}
+
+if ($NpmExitCode -ne 0) {
     Write-Host "Ohjelman kaynnistaminen epaonnistui." -ForegroundColor Red
 }

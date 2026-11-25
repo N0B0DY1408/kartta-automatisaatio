@@ -50,10 +50,10 @@ function validatePlanData(plan) {
     }
 
     if (
-        !Array.isArray(plan.kojut) ||
+        !Array.isArray(plan.kojupaikat) ||
         !Array.isArray(plan.parkit)
     ) {
-        throw new Error("koju tai parkki data ongelma.");
+        throw new Error("kojupaikka tai parkki data ongelma.");
     }
 
     // Alueet ovat vapaaehtoisia vanhoissa suunnitelmissa.
@@ -115,35 +115,44 @@ function validatePlanData(plan) {
         });
     });
 
-    const vendorNumbers = new Set();
+    const kojupaikkaNumbers = new Set();
 
-    plan.kojut.forEach(function (vendor, index) {
+    plan.kojupaikat.forEach(function (paikka, index) {
 
-        if (!isObject(vendor)) {
-            throw new Error("virhe kojun kohdalla " + index);
+        if (!isObject(paikka)) {
+            throw new Error("Virhe kojupaikan kohdalla " + index);
         }
 
         if (
-            !Number.isInteger(vendor.number) ||
-            vendor.number < 1
+            !Number.isInteger(paikka.number) ||
+            paikka.number < 1
         ) {
-            throw new Error("virhen kojun numeron kanssa.");
+            throw new Error("Virhe kojupaikan numeron kanssa.");
         }
 
-        if (vendorNumbers.has(vendor.number)) {
-            throw new Error("kojun numero on jo käytössä.");
+        if (kojupaikkaNumbers.has(paikka.number)) {
+            throw new Error("Kojupaikan numero on jo käytössä.");
         }
 
-        vendorNumbers.add(vendor.number);
-
-        if (typeof vendor.name !== "string") {
-            throw new Error("virhe kojun nimen kanssa.");
-        }
+        kojupaikkaNumbers.add(paikka.number);
 
         validateCoordinates(
-            vendor.coordinates,
-            "Vendor " + vendor.number
+            paikka.center,
+            "Kojupaikka " + paikka.number
         );
+
+        if (
+            !Number.isFinite(paikka.width) ||
+            paikka.width <= 0 ||
+            !Number.isFinite(paikka.height) ||
+            paikka.height <= 0
+        ) {
+            throw new Error("Kojupaikan mitat ovat virheelliset.");
+        }
+
+        if (!Number.isFinite(paikka.rotation)) {
+            throw new Error("Kojupaikan kierto on virheellinen.");
+        }
     });
 
     const parkingNumbers = new Set();
@@ -244,30 +253,23 @@ lataaInput.addEventListener("change", function () {
 
         clearCurrentPlan();
 
-        // Restore vendors
-        suunnitelmaData.kojut.forEach(function (koju) {
+        // Palautetaan fyysiset kojupaikat
+        suunnitelmaData.kojupaikat.forEach(function (paikka) {
 
-            const position = L.latLng(
-                koju.coordinates.lat,
-                koju.coordinates.lng
+            const keskipiste = L.latLng(
+                paikka.center.lat,
+                paikka.center.lng
             );
 
-            createKoju(
-                koju.number,
-                koju.name,
-                position
+            luoKojupaikka(
+                paikka.number,
+                keskipiste,
+                paikka
             );
 
-            const palautettuKoju = kojut.get(koju.number);
-
-            if (palautettuKoju) {
-                palautettuKoju.alueId = koju.alueId || null;
-                palautettuKoju.alueTunnus = koju.alueTunnus || null;
-            }
-
-            kojumäärä = Math.max(
-                kojumäärä,
-                koju.number + 1
+            kojupaikkaMaara = Math.max(
+                kojupaikkaMaara,
+                paikka.number + 1
             );
         });
 
@@ -312,6 +314,9 @@ lataaInput.addEventListener("change", function () {
             });
 
         }
+
+        // Päivitetään alueiden kojupaikkanumerointi
+        paivitaAlueidenKojupaikkaNumerot();
 
         // Restore map view
         map.setView(

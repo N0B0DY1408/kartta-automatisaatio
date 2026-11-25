@@ -46,14 +46,17 @@
 
         <input type="file" id="TuoInput" accept=".json,application/json" hidden>
 
-        <div id="kojuCounter">
-            Myyntikojuja: <span id="kojuCount">0</span>
-        </div>
-
         <h4 id="nakymaTeksti">Tavallinen kartta</h4>
 
         <label id="switch">
-            <input type="checkbox" id="nakymaSwitch">
+            <input
+                type="range"
+                id="nakymaSwitch"
+                min="0"
+                max="1"
+                step="1"
+                value="0"
+            >
             <span class="slider round"></span>
         </label>
 
@@ -89,7 +92,59 @@
                 <h2>Parkkipaikkojen hallinta</h2>
             </section>
 
+            
+            <!-- Kojupaikkojen muokkausnäkymä -->
+            <section id="kojupaikkaMuokkausSisalto">
+
+                <div id="valitunKojupaikanTiedot" style="display: none;">
+
+                    <h3>Valittu kojupaikka</h3>
+
+                    <p>
+                        Numero:
+                        <strong id="muokkausKojuNumero"></strong>
+                    </p>
+
+                    <p>
+                        Nimi:
+                        <strong id="muokkausKojuNimi"></strong>
+                    </p>
+
+                    <label for="muokkausKojuLeveys">Leveys (m)</label>
+                    <input
+                        type="number"
+                        id="muokkausKojuLeveys"
+                        min="0.5"
+                        step="0.5"
+                        value="3"
+                    >
+
+                    <label for="muokkausKojuKorkeus">Korkeus (m)</label>
+                    <input
+                        type="number"
+                        id="muokkausKojuKorkeus"
+                        min="0.5"
+                        step="0.5"
+                        value="3"
+                    >
+
+                    <label for="muokkausKojuRotaatiokulma">
+                        Kiertokulma (astetta)
+                    </label>
+
+                    <input
+                        type="number"
+                        id="muokkausKojuRotaatiokulma"
+                        step="5"
+                        value="0"
+                    >
+
+                </div>
+
+            </section>
+
         </div>
+
 
         <!-- Alueiden suunnittelunäkymä -->
         <div id="alueNakyma" style="display: none;">
@@ -152,33 +207,6 @@
     </dialog>
 
 
-    <dialog id="kojuDialog">
-        <form method="dialog">
-            <h2>Uusi myyntikoju</h2>
-
-            <label for="kojuNameInput">Kojun nimi:</label>
-            <input
-                type="text"
-                id="kojuNameInput"
-                placeholder="Esim. Kahvila"
-                required
-                autofocus
-            >
-
-            <div class="dialog-buttons">
-                <button type="submit" value="create">
-                    Luo koju
-                </button>
-
-
-                <button type="submit" value="cancel" formnovalidate>
-                    Peruuta
-                </button>
-            </div>
-        </form>
-    </dialog>
-
-
     <dialog id="publishCodeDialog">
         <form method="dialog">
             <h2>Julkaisukoodi</h2>
@@ -213,7 +241,10 @@
     <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@2.18.3/dist/leaflet-geoman.min.js"></script>
 
     <script src="scripts/map.js"></script>
-    <script src="scripts/luonti.js"></script>
+    <script src="scripts/geometria.js"></script>
+    <script src="scripts/kojut.js"></script>
+    <script src="scripts/parkit.js"></script>
+    <script src="scripts/alueet.js"></script>
 
     <script src="scripts/varastointi.js"></script>
     <script src="scripts/tallennus.js"></script>
@@ -225,6 +256,13 @@
     <script src="scripts/julkaisu.js"></script>
 
     <script src="scripts/sivu.js"></script>
+
+    <footer>
+        <h3>Ohjelman tehnyt Matias Tuikka</h3>
+        <button id="devInvertButton" hidden onclick="document.body.classList.toggle('inverted')">
+            🌈 Käännä maailman värit
+        </button>
+    </footer>
 </body>
 
 </html>

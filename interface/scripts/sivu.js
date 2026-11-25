@@ -2,6 +2,8 @@ const kytkin = document.getElementById("nakymaSwitch");
 
 const tavallinenNakyma = document.getElementById("tavallinenNakyma");
 
+const kojupaikkaMuokkausNakyma = document.getElementById("kojupaikkaMuokkausSisalto");
+
 const alueNakyma = document.getElementById("alueNakyma");
 
 const nakymaTeksti = document.getElementById("nakymaTeksti");
@@ -10,35 +12,59 @@ const naytaKojutKytkin = document.getElementById("naytaKojut");
 
 const naytaParkitKytkin = document.getElementById("naytaParkit");
 
+// Kojupaikan muokkausnäkymän kentät.
+const valitunKojupaikanTiedot = document.getElementById("valitunKojupaikanTiedot");
+
+const muokkausKojuNumero = document.getElementById("muokkausKojuNumero");
+
+const muokkausKojuNimi = document.getElementById("muokkausKojuNimi");
+
+const muokkausKojuLeveys = document.getElementById("muokkausKojuLeveys");
+
+const muokkausKojuKorkeus = document.getElementById("muokkausKojuKorkeus");
+
+const muokkausKojuRotaatiokulma = document.getElementById("muokkausKojuRotaatiokulma");
+
+let kojupaikanSiirtoKaynnissa = false;
+
 
 // Näkymän vaihtaminen
 kytkin.addEventListener("change", function () {
 
-    if (kytkin.checked) {
+    const valittuNakyma = Number(kytkin.value);
 
-        // Alueiden suunnittelunäkymä
-        tavallinenNakyma.style.display = "none";
+    // Piilotetaan tavallinen ja alueiden suunnittelunäkymä.
+    tavallinenNakyma.style.display = "none";
+    kojupaikkaMuokkausNakyma.style.display = "none";
+    alueNakyma.style.display = "none";
+
+    // Jos poistutaan alueiden suunnittelunäkymästä,
+    // lopetetaan mahdollinen alueiden piirtäminen.
+    if (valittuNakyma !== 1) {
+
+        if (alueidenPiirtoKaynnissa) {
+            vaihdaAlueidenPiirtotila();
+        }
+
+        naytaAlueet(false);
+    }
+
+    // Tavallinen karttanäkymä
+    if (valittuNakyma === 0) {
+
+        tavallinenNakyma.style.display = "";
+
+        nakymaTeksti.textContent = "Tavallinen kartta";
+    }
+
+    // Alueiden suunnittelunäkymä
+    else if (valittuNakyma === 1) {
+
         alueNakyma.style.display = "block";
 
         nakymaTeksti.textContent = "Alueiden suunnittelu";
 
         naytaAlueet(true);
-
-    } else {
-
-        // Lopetetaan alueiden piirtäminen näkymästä poistuttaessa
-        if (alueidenPiirtoKaynnissa) {
-            vaihdaAlueidenPiirtotila();
-        }
-
-        // Tavallinen karttanäkymä
-        tavallinenNakyma.style.display = "";
-        alueNakyma.style.display = "none";
-
-        nakymaTeksti.textContent = "Tavallinen kartta";
-
-        naytaAlueet(false);
-
     }
 
     setTimeout(function () {
@@ -71,7 +97,7 @@ searchInput.addEventListener("input", function () {
         const number = koju.querySelector("p").textContent.toLowerCase();
         const title = koju.querySelector("h3").textContent.toLowerCase();
 
-        const kojuData = Array.from(kojut.values()).find(data =>
+        const kojuData = Array.from(kojupaikat.values()).find(data =>
             data.element === koju
         );
 
@@ -114,4 +140,28 @@ alueidenPiirtoPainike.addEventListener("click", function () {
         alueidenPiirtoPainike.textContent = "Piirrä alueita";
     }
 
+});
+
+// KEHITYSTILAN VÄRIEN KÄÄNTÖ
+document.addEventListener("DOMContentLoaded", async function () {
+
+    try {
+        const settings = await window.appSettings.getSettings();
+
+        if (settings.isDevInvertEnabled) {
+
+            // Käännetään värit automaattisesti
+            document.body.classList.add("inverted");
+
+            // Näytetään kehittäjän värien kääntöpainike
+            const button = document.getElementById("devInvertButton");
+
+            if (button) {
+                button.hidden = false;
+            }
+        }
+
+    } catch (error) {
+        console.error("Kehitystilan asetusten lataaminen epäonnistui:", error);
+    }
 });
