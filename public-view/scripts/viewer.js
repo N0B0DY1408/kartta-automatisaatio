@@ -169,15 +169,7 @@ function createStallList(kojupaikat) {
         const title = document.createElement("h3");
         title.textContent = `Kojupaikka #${paikka.number}`;
 
-        const status = document.createElement("p");
-        status.textContent = "Tila: " + (
-            paikka.status === "available" ? "Vapaa" :
-            paikka.status === "reserved" ? "Varattu" :
-            paikka.status === "paid" ? "Maksettu" :
-            "Ei tiedossa"
-        );
-
-        kojuDiv.append(title, status);
+        kojuDiv.append(title);
 
         // Tallennetaan HTML-elementti kojun numerolla
         stallElements.set(paikka.id, kojuDiv);

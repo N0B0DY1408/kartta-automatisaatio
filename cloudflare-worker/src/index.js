@@ -1,14 +1,25 @@
 
-const ALLOWED_ORIGIN = "https://kartta-automatisaatio.pages.dev";
+const ALLOWED_ORIGINS = [
+    "https://kartta-automatisaatio.pages.dev",
+    "http://localhost",
+    "http://127.0.0.1"
+];
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 Mt
 
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
+        const requestOrigin = request.headers.get("Origin");
+
+        const allowedOrigin = ALLOWED_ORIGINS.includes(requestOrigin)
+            ? requestOrigin
+            : ALLOWED_ORIGINS[0];
+
         const corsHeaders = {
-            "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+            "Access-Control-Allow-Origin": allowedOrigin,
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization"
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+            "Vary": "Origin"
         };
 
         // Selain tarkistaa joskus palvelimen sallitut yhteydet etukäteen.
