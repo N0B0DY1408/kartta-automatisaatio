@@ -601,7 +601,8 @@ nav {
 ================================= */
 
 #kojuDialog,
-#publishCodeDialog {
+#publishCodeDialog,
+#reservationSettingsDialog {
     border: none;
     border-radius: 10px;
     padding: 25px;
@@ -612,24 +613,28 @@ nav {
     min-width: 280px;
 }
 
-#publishCodeDialog {
+#publishCodeDialog,
+#reservationSettingsDialog {
     min-width: 320px;
 }
 
 #kojuDialog::backdrop,
-#publishCodeDialog::backdrop {
+#publishCodeDialog::backdrop,
+#reservationSettingsDialog::backdrop {
     background: rgba(0, 0, 0, 0.45);
 }
 
 #kojuDialog form,
-#publishCodeDialog form {
+#publishCodeDialog form,
+#reservationSettingsDialog form {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
 #kojuDialog input,
-#publishCodeDialog input {
+#publishCodeDialog input,
+#reservationSettingsDialog input {
     padding: 9px;
     font-size: 15px;
 }

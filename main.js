@@ -335,7 +335,7 @@ ipcMain.handle("publish-plan", async function (event, planName, publishCode) {
             typeof plan !== "object" ||
             !plan.map ||
             !plan.map.center ||
-            !Array.isArray(plan.kojut)
+            !Array.isArray(plan.kojupaikat)
         ) {
             throw new Error("Suunnitelman tietorakenne ei kelpaa julkaistavaksi.");
         }

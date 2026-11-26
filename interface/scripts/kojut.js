@@ -62,6 +62,8 @@ function luoKojupaikka(number, keskipiste, palautettuData = null) {
     }
 
     const paikkaData = {
+        id: palautettuData?.id ?? crypto.randomUUID(),
+
         number: number,
 
         center: palautettuData?.center
@@ -451,10 +453,6 @@ function luoKojupaikanKortti(paikkaData) {
             valittuKojupaikka = null;
             valitunKojupaikanTiedot.style.display = "none";
         }
-
-        kojupaikat.delete(paikkaData.number);
-
-        paivitaAlueidenKojupaikkaMaarat();
 
         kojupaikat.delete(paikkaData.number);
 

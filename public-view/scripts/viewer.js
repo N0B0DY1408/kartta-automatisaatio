@@ -1,12 +1,12 @@
 console.log("VIEWER.JS UUSI VERSIO 16.11.2026");
 
 let map;
-let markers = new Map();
+let stalls = new Map();
 let stallElements = new Map();
 let lastPlanJson = null;
 let refreshInterval = null;
 
-let selectedStallNumber = null;
+let selectedStallId = null;
 
 async function loadPlan() {
 
@@ -32,11 +32,23 @@ async function loadPlan() {
 
         console.log("Ladattu suunnitelma:", plan);
 
-        if (!plan.map || !plan.map.center || !Array.isArray(plan.kojut)) {
-            throw new Error("Suunnitelman JSON-rakenne ei ole oikeanlainen.");
+        if (!plan || typeof plan !== "object") {
+            throw new Error("Suunnitelma puuttuu tai ei ole objekti.");
         }
 
-        // Tarkistetaan, onko suunnitelma muuttunut
+        if (!plan.map) {
+            throw new Error("Suunnitelmasta puuttuu map-osio.");
+        }
+
+        if (!plan.map.center) {
+            throw new Error("Suunnitelmasta puuttuu kartan keskipiste.");
+        }
+
+        if (!Array.isArray(plan.kojupaikat)) {
+            throw new Error("Suunnitelman kojupaikat eivät ole taulukko.");
+        }
+
+        // Tarkistetaan, onko suunnitelma muuttunut.
         const currentPlanJson = JSON.stringify(plan);
 
         if (currentPlanJson === lastPlanJson) {
@@ -44,34 +56,22 @@ async function loadPlan() {
             return;
         }
 
-        // Tallennetaan uuden suunnitelman sisältö vertailua varten
+        // Tallennetaan uuden suunnitelman sisältö vertailua varten.
         lastPlanJson = currentPlanJson;
 
-        // Tyhjennetään vanhat karttamerkit ja valinnat
-        markers.clear();
+        // Tyhjennetään vanhat karttamerkit ja valinnat.
+        stalls.clear();
         stallElements.clear();
-        selectedStallNumber = null;
+        selectedStallId = null;
 
-        // Päivitetään sivun sisältö
+        // Päivitetään sivun sisältö.
         document.getElementById("eventName").textContent = plan.name;
 
         createMap(plan);
-        createStallList(plan.kojut);
+        createStallList(plan.kojupaikat);
         createParkingAreas(plan.parkit || []);
 
         console.log("Kartta päivitettiin uudella suunnitelmalla.");
-
-        if (!plan.map || !plan.map.center || !Array.isArray(plan.kojut)) {
-            throw new Error("Suunnitelman JSON-rakenne ei ole oikeanlainen.");
-        }
-
-        document.getElementById("eventName").textContent = plan.name;
-
-        createMap(plan);
-
-        createStallList(plan.kojut);
-
-        createParkingAreas(plan.parkit || []);
 
     } catch (error) {
 
@@ -87,7 +87,7 @@ async function loadPlan() {
 
 function createMap(plan) {
 
-    // Poistetaan mahdollinen aikaisempi Leaflet-kartta
+    // Poistetaan mahdollinen aikaisempi Leaflet-kartta.
     if (map) {
         map.remove();
         map = null;
@@ -95,7 +95,7 @@ function createMap(plan) {
 
     const mapContainer = document.getElementById("map");
 
-    // Varmistetaan, ettei karttaelementissä ole vanhaa Leaflet-tilaa
+    // Varmistetaan, ettei karttaelementissä ole vanhaa Leaflet-tilaa.
     if (mapContainer._leaflet_id) {
         delete mapContainer._leaflet_id;
     }
@@ -112,44 +112,47 @@ function createMap(plan) {
         attribution: '&copy; OpenStreetMap'
     }).addTo(map);
 
-    plan.kojut.forEach(function (koju) {
+    plan.kojupaikat.forEach(function (paikka) {
 
-        const coordinates = [
-            koju.coordinates.lat,
-            koju.coordinates.lng
-        ];
+        const coordinates = paikka.coordinates.map(function (corner) {
+            return [
+                corner.lat,
+                corner.lng
+            ];
+        });
 
-        const marker = L.marker(coordinates).addTo(map);
-
-        // Luodaan ponnahdusikkunan sisältö turvallisesti
+        // Luodaan ponnahdusikkunan sisältö.
         const popupContent = document.createElement("div");
 
         const popupTitle = document.createElement("strong");
-        popupTitle.textContent = `Koju #${koju.number}`;
+        popupTitle.textContent = `Kojupaikka #${paikka.number}`;
 
-        const popupName = document.createElement("p");
-        popupName.textContent = koju.name;
+        popupContent.append(popupTitle);
 
-        popupContent.append(popupTitle, popupName);
+        const stall = L.polygon(coordinates, {
+            color: "#3388ff",
+            weight: 2,
+            fillColor: "#3388ff",
+            fillOpacity: 0.35
+        }).addTo(map);
 
-        marker.bindPopup(popupContent, {
+        stall.bindPopup(popupContent, {
             autoPan: false
         });
 
-        // Tallennetaan merkki numeron avulla
-        markers.set(koju.number, marker);
+        // Tallennetaan kojupaikka pysyvän tunnisteen avulla.
+        stalls.set(paikka.id, stall);
 
-        // Kun karttamerkkiä painetaan, valitaan vastaava koju listasta
-        marker.on("click", function () {
-            selectStall(koju.number, true);
+        // Kun kojupaikkaa painetaan, valitaan vastaava paikka listasta.
+        stall.on("click", function () {
+            selectStall(paikka.id, true);
         });
 
     });
 }
 
 
-
-function createStallList(kojut) {
+function createStallList(kojupaikat) {
 
     const list = document.getElementById("stallList");
 
@@ -158,25 +161,30 @@ function createStallList(kojut) {
     // Tyhjennetään myös vanhat elementtiviittaukset
     stallElements.clear();
 
-    kojut.forEach(function (koju) {
+    kojupaikat.forEach(function (paikka) {
 
         const kojuDiv = document.createElement("div");
         kojuDiv.className = "koju";
 
         const title = document.createElement("h3");
-        title.textContent = `Koju #${koju.number}`;
+        title.textContent = `Kojupaikka #${paikka.number}`;
 
-        const name = document.createElement("p");
-        name.textContent = koju.name;
+        const status = document.createElement("p");
+        status.textContent = "Tila: " + (
+            paikka.status === "available" ? "Vapaa" :
+            paikka.status === "reserved" ? "Varattu" :
+            paikka.status === "paid" ? "Maksettu" :
+            "Ei tiedossa"
+        );
 
-        kojuDiv.append(title, name);
+        kojuDiv.append(title, status);
 
         // Tallennetaan HTML-elementti kojun numerolla
-        stallElements.set(koju.number, kojuDiv);
+        stallElements.set(paikka.id, kojuDiv);
 
         // Kun listan kojua painetaan, valitaan se kartalta
         kojuDiv.addEventListener("click", function () {
-            selectStall(koju.number, true);
+            selectStall(paikka.id, true);
         });
 
         list.appendChild(kojuDiv);
@@ -185,62 +193,67 @@ function createStallList(kojut) {
 }
 
 
-function selectStall(number, moveMap) {
+function selectStall(id, moveMap) {
 
-    // Poistetaan aikaisempi valinta
-    if (selectedStallNumber !== null) {
+    // Poistetaan aikaisempi valinta.
+    if (selectedStallId !== null) {
 
-        const previousElement = stallElements.get(selectedStallNumber);
+        const previousElement = stallElements.get(selectedStallId);
 
         if (previousElement) {
             previousElement.classList.remove("koju-highlight");
         }
 
-        const previousMarker = markers.get(selectedStallNumber);
+        const previousStall = stalls.get(selectedStallId);
 
-        if (previousMarker) {
-            previousMarker.setZIndexOffset(0);
-
-            const previousIcon = previousMarker.getElement();
-
-            if (previousIcon) {
-                previousIcon.classList.remove("marker-highlight");
-            }
+        if (previousStall) {
+            previousStall.setStyle({
+                color: "#3388ff",
+                weight: 2,
+                fillColor: "#3388ff",
+                fillOpacity: 0.35
+            });
         }
     }
 
-    // Tallennetaan uusi valinta
-    selectedStallNumber = number;
+    // Tallennetaan uuden kojupaikan tunniste.
+    selectedStallId = id;
 
-    const selectedElement = stallElements.get(number);
-    const selectedMarker = markers.get(number);
+    const selectedElement = stallElements.get(id);
+    const selectedStall = stalls.get(id);
 
-    if (!selectedElement || !selectedMarker) {
+    if (!selectedElement || !selectedStall) {
         return;
     }
 
-    // Korostetaan kojulistan elementti
+    // Korostetaan sivupaneelin kojupaikka.
     selectedElement.classList.add("koju-highlight");
 
-    // Korostetaan karttamerkki
-    selectedMarker.setZIndexOffset(1000);
+    // Korostetaan kartan suorakulmio.
+    selectedStall.setStyle({
+        color: "#ffcc00",
+        weight: 4,
+        fillColor: "#ffcc00",
+        fillOpacity: 0.5
+    });
 
-    const selectedIcon = selectedMarker.getElement();
+    selectedStall.bringToFront();
 
-    if (selectedIcon) {
-        selectedIcon.classList.add("marker-highlight");
-    }
-
-    // Siirretään kartta kojun kohdalle tarvittaessa
+    // Siirretään kartta valitun kojupaikan kohdalle.
     if (moveMap) {
-        map.setView(selectedMarker.getLatLng(), 19, {
-            animate: true
-        });
 
-        selectedMarker.openPopup();
+        map.setView(
+            selectedStall.getBounds().getCenter(),
+            19,
+            {
+                animate: true
+            }
+        );
+
+        selectedStall.openPopup();
     }
 
-    // Vieritetään valittu koju näkyviin listassa
+    // Vieritetään valittu kojupaikka näkyviin listassa.
     selectedElement.scrollIntoView({
         behavior: "smooth",
         block: "nearest"

@@ -49,7 +49,7 @@ uusiSuunnitelmaNappi.addEventListener("click", async function () {
 
         // Asetetaan uusi suunnitelma aktiiviseksi
         currentPlanName = uusiNimi;
-        currentPlanId = uusiNimi;
+        currentPlanId = crypto.randomUUID();
 
         localStorage.setItem("viimeksiAktiivinenSuunnitelma", currentPlanName);
 

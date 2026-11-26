@@ -94,7 +94,7 @@ async function restorePlanFromDatabase(planName = currentPlanName) {
 
         // Asetetaan valittu suunnitelma aktiiviseksi
         currentPlanName = planData.name || planName;
-        currentPlanId = currentPlanName;
+        currentPlanId = planData.id || crypto.randomUUID();
 
         localStorage.setItem("viimeksiAktiivinenSuunnitelma", currentPlanName);
 

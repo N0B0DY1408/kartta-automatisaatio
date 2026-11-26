@@ -233,138 +233,138 @@ lataaInput.addEventListener("change", function () {
 
     reader.onload = async function (event) {
 
-    let rotationWasEnabled = false;
+        let rotationWasEnabled = false;
 
-    // Pause autosaving while the plan is being imported
-    autosavePaused = true;
+        // Pause autosaving while the plan is being imported
+        autosavePaused = true;
 
-    let tuontiOnnistui = false;
+        let tuontiOnnistui = false;
 
-    try {
-        const suunnitelmaData = JSON.parse(event.target.result);
+        try {
+            const suunnitelmaData = JSON.parse(event.target.result);
 
-        validatePlanData(suunnitelmaData);
+            validatePlanData(suunnitelmaData);
 
-        rotationWasEnabled = map.pm.globalRotateModeEnabled();
+            rotationWasEnabled = map.pm.globalRotateModeEnabled();
 
-        if (rotationWasEnabled) {
-            map.pm.disableGlobalRotateMode();
-        }
+            if (rotationWasEnabled) {
+                map.pm.disableGlobalRotateMode();
+            }
 
-        clearCurrentPlan();
+            clearCurrentPlan();
 
-        // Palautetaan fyysiset kojupaikat
-        suunnitelmaData.kojupaikat.forEach(function (paikka) {
+            // Palautetaan fyysiset kojupaikat
+            suunnitelmaData.kojupaikat.forEach(function (paikka) {
 
-            const keskipiste = L.latLng(
-                paikka.center.lat,
-                paikka.center.lng
-            );
-
-            luoKojupaikka(
-                paikka.number,
-                keskipiste,
-                paikka
-            );
-
-            kojupaikkaMaara = Math.max(
-                kojupaikkaMaara,
-                paikka.number + 1
-            );
-        });
-
-        // Restore parking areas
-        suunnitelmaData.parkit.forEach(function (area) {
-
-            const corners = area.coordinates.map(function (corner) {
-                return L.latLng(corner.lat, corner.lng);
-            });
-
-            luoparkki(
-                area.number,
-                area.name,
-                area.entrance,
-                area.exit,
-                null,
-                corners
-            );
-
-            parkingCounter = Math.max(
-                parkingCounter,
-                area.number + 1
-            );
-        });
-
-        // Palautetaan JSON-tiedoston alueet
-        if (Array.isArray(suunnitelmaData.alueet)) {
-
-            suunnitelmaData.alueet.forEach(function (area) {
-
-                const koordinaatit = area.koordinaatit.map(function (point) {
-                    return L.latLng(point.lat, point.lng);
-                });
-
-                luoAlue(
-                    area.id,
-                    area.kirjain,
-                    area.vari,
-                    koordinaatit
+                const keskipiste = L.latLng(
+                    paikka.center.lat,
+                    paikka.center.lng
                 );
 
+                luoKojupaikka(
+                    paikka.number,
+                    keskipiste,
+                    paikka
+                );
+
+                kojupaikkaMaara = Math.max(
+                    kojupaikkaMaara,
+                    paikka.number + 1
+                );
             });
 
+            // Restore parking areas
+            suunnitelmaData.parkit.forEach(function (area) {
+
+                const corners = area.coordinates.map(function (corner) {
+                    return L.latLng(corner.lat, corner.lng);
+                });
+
+                luoparkki(
+                    area.number,
+                    area.name,
+                    area.entrance,
+                    area.exit,
+                    null,
+                    corners
+                );
+
+                parkingCounter = Math.max(
+                    parkingCounter,
+                    area.number + 1
+                );
+            });
+
+            // Palautetaan JSON-tiedoston alueet
+            if (Array.isArray(suunnitelmaData.alueet)) {
+
+                suunnitelmaData.alueet.forEach(function (area) {
+
+                    const koordinaatit = area.koordinaatit.map(function (point) {
+                        return L.latLng(point.lat, point.lng);
+                    });
+
+                    luoAlue(
+                        area.id,
+                        area.kirjain,
+                        area.vari,
+                        koordinaatit
+                    );
+
+                });
+
+            }
+
+            // Päivitetään alueiden kojupaikkanumerointi
+            paivitaAlueidenKojupaikkaNumerot();
+
+            // Restore map view
+            map.setView(
+                [
+                    suunnitelmaData.map.center.lat,
+                    suunnitelmaData.map.center.lng
+                ],
+                suunnitelmaData.map.zoom
+            );
+
+            if (typeof map.setBearing === "function") {
+                map.setBearing(suunnitelmaData.map.bearing || 0);
+            }
+
+            currentPlanName = suunnitelmaData.name || "Untitled plan";
+            currentPlanId = suunnitelmaData.id || crypto.randomUUID();
+
+            localStorage.setItem(
+                "viimeksiAktiivinenSuunnitelma",
+                currentPlanName
+            );
+
+            console.log("Suunnitelma tuotu:", suunnitelmaData);
+            alert("Suunnitelma ladattu onnistuneesti!");
+
+            tuontiOnnistui = true;
+
+        } catch (error) {
+            console.error("Virhe suunnitelmaa lataaessa:", error);
+            alert("Suunnitelmaa ei voitu ladata. Tiedosto saattaa olla virheellinen.");
+
+        } finally {
+
+            // Käynnistetään automaattitallennus uudelleen
+            autosavePaused = false;
+
+            if (tuontiOnnistui) {
+                scheduleAutosave();
+            }
+
+            // Restore rotation mode if it was previously enabled
+            if (rotationWasEnabled) {
+                map.pm.enableGlobalRotateMode();
+            }
+
+            lataaInput.value = "";
         }
-
-        // Päivitetään alueiden kojupaikkanumerointi
-        paivitaAlueidenKojupaikkaNumerot();
-
-        // Restore map view
-        map.setView(
-            [
-                suunnitelmaData.map.center.lat,
-                suunnitelmaData.map.center.lng
-            ],
-            suunnitelmaData.map.zoom
-        );
-
-        if (typeof map.setBearing === "function") {
-            map.setBearing(suunnitelmaData.map.bearing || 0);
-        }
-
-        currentPlanName = suunnitelmaData.name || "Untitled plan";
-        currentPlanId = currentPlanName;
-
-        localStorage.setItem(
-            "viimeksiAktiivinenSuunnitelma",
-            currentPlanName
-        );
-
-        console.log("Suunnitelma tuotu:", suunnitelmaData);
-        alert("Suunnitelma ladattu onnistuneesti!");
-
-        tuontiOnnistui = true;
-
-    } catch (error) {
-        console.error("Virhe suunnitelmaa lataaessa:", error);
-        alert("Suunnitelmaa ei voitu ladata. Tiedosto saattaa olla virheellinen.");
-
-    } finally {
-
-        // Käynnistetään automaattitallennus uudelleen
-        autosavePaused = false;
-
-        if (tuontiOnnistui) {
-            scheduleAutosave();
-        }
-
-        // Restore rotation mode if it was previously enabled
-        if (rotationWasEnabled) {
-            map.pm.enableGlobalRotateMode();
-        }
-
-        lataaInput.value = "";
-    }
-};
+    };
 
 
     reader.onerror = function () {

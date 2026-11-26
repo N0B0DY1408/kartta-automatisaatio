@@ -2,7 +2,7 @@ const tallennusNappi = document.getElementById('tallenna');
 
 let currentPlanName = "Untitled plan";
 
-let currentPlanId = "current";
+let currentPlanId = crypto.randomUUID();
 
 function suunnitelmaData(planName) {
 
@@ -12,6 +12,7 @@ function suunnitelmaData(planName) {
         const corners = paikka.layer.getLatLngs()[0];
 
         return {
+            id: paikka.id,
             number: paikka.number,
 
             center: {
@@ -77,6 +78,7 @@ function suunnitelmaData(planName) {
     // Return the complete plan
     return {
         version: 1,
+        id: currentPlanId,
         name: planName,
         kojupaikat: kojupaikkaData,
         parkit: parkkiData,

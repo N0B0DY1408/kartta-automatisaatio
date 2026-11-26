@@ -206,6 +206,51 @@
         </form>
     </dialog>
 
+    <dialog id="reservationSettingsDialog">
+        <form method="dialog">
+            <h2>Paikkavarausten asetukset</h2>
+
+            <label>
+                <input
+                    type="checkbox"
+                    id="reservationsEnabled"
+                >
+                Ota kojupaikkojen varaukset käyttöön
+            </label>
+
+            <label for="reservationCodeInput">
+                Tapahtuman varauskoodi:
+            </label>
+
+            <input
+                type="password"
+                id="reservationCodeInput"
+                placeholder="Valitse varauskoodi"
+                autocomplete="new-password"
+            >
+
+            <label for="reservationCodeConfirmInput">
+                Vahvista varauskoodi:
+            </label>
+
+            <input
+                type="password"
+                id="reservationCodeConfirmInput"
+                placeholder="Kirjoita varauskoodi uudelleen"
+                autocomplete="new-password"
+            >
+
+            <div class="dialog-buttons">
+                <button type="submit" value="continue">
+                    Jatka
+                </button>
+
+                <button type="submit" value="cancel" formnovalidate>
+                    Peruuta
+                </button>
+            </div>
+        </form>
+    </dialog>
 
     <dialog id="publishCodeDialog">
         <form method="dialog">
