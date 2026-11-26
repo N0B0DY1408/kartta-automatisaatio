@@ -39,8 +39,13 @@ contextBridge.exposeInMainWorld("planStorage", {
         return ipcRenderer.invoke("cancel-close");
     },
 
-    publishPlan: function (name, code) {
-        return ipcRenderer.invoke("publish-plan", name, code);
+    publishPlan: function (name, code, reservationSettings) {
+        return ipcRenderer.invoke(
+            "publish-plan",
+            name,
+            code,
+            reservationSettings
+        );
     },
 
     exportPlan: function (planData) {

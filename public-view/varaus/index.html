@@ -1,0 +1,89 @@
+
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Kojupaikan varaaminen</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    >
+</head>
+
+<body>
+
+    <header>
+        <h1>Kojupaikan varaaminen</h1>
+    </header>
+
+    <main>
+
+        <section id="accessSection">
+            <h2>Tapahtumaan liittyminen</h2>
+
+            <p>
+                Syötä tapahtuman järjestäjältä saamasi varauskoodi.
+            </p>
+
+            <input
+                type="password"
+                id="reservationAccessCode"
+                placeholder="Varauskoodi"
+            >
+
+            <button id="accessButton">
+                Jatka
+            </button>
+        </section>
+
+        <section id="reservationSection" hidden>
+
+            <h2>Valitse kojupaikka</h2>
+
+            <div id="map"></div>
+
+            <div id="stallDetails">
+                <p>Valitse kartalta haluamasi kojupaikka.</p>
+            </div>
+
+            <div id="stallList"></div>
+
+            <h2>Varaajan tiedot</h2>
+
+            <form id="reservationForm">
+
+                <label for="sellerName">Nimi</label>
+                <input type="text" id="sellerName" required>
+
+                <label for="sellerEmail">Sähköpostiosoite</label>
+                <input type="email" id="sellerEmail" required>
+
+                <label for="sellerPhone">Puhelinnumero</label>
+                <input type="tel" id="sellerPhone">
+
+                <button type="submit">
+                    Lähetä varauspyyntö
+                </button>
+
+            </form>
+
+        </section>
+
+        <section id="confirmationSection" hidden>
+            <h2>Varauspyyntö vastaanotettu</h2>
+
+            <p id="confirmationMessage"></p>
+        </section>
+
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="varaus.js"></script>
+
+</body>
+</html>

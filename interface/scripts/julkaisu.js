@@ -123,7 +123,8 @@ julkaiseKarttaNappi.addEventListener("click", async function () {
         // Lähetetään suunnitelman nimi ja julkaisukoodi pääprosessille
         const tulos = await window.planStorage.publishPlan(
             suunnitelmanNimi,
-            publishCode
+            publishCode,
+            reservationSettings
         );
 
         if (!tulos.success) {

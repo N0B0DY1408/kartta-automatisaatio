@@ -303,7 +303,12 @@ ipcMain.handle("cancel-close", function () {
 
 
 
-ipcMain.handle("publish-plan", async function (event, planName, publishCode) {
+ipcMain.handle("publish-plan", async function (
+    event,
+    planName,
+    publishCode,
+    reservationSettings
+) {
     try {
         // Tarkistetaan suunnitelman nimi
         const safeName = validatePlanName(planName);
@@ -358,7 +363,15 @@ ipcMain.handle("publish-plan", async function (event, planName, publishCode) {
                     "Authorization": `Bearer ${publishCode}`
                 },
 
-                body: jsonData,
+                body: JSON.stringify({
+                    plan: plan,
+                    reservationSettings: {
+                        enabled: reservationSettings.enabled,
+                        code: reservationSettings.enabled
+                            ? reservationSettings.code
+                            : null
+                    }
+                }),
                 signal: AbortSignal.timeout(30000)
             }
         );
